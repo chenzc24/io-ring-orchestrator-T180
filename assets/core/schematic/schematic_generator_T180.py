@@ -9,7 +9,7 @@ import re
 import sys
 import os
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Tuple
 
 
 # Import device template parser from the correct location (180nm)
@@ -61,7 +61,7 @@ class SchematicGenerator:
         # If pattern doesn't match, return as is (may already be in correct format or no brackets)
         return label
 
-    def _parse_position_for_order(self, position_desc: Any) -> tuple[str | None, int, int]:
+    def _parse_position_for_order(self, position_desc: Any) -> Tuple[Optional[str], int, int]:
         if not isinstance(position_desc, str):
             return None, 10**9, 10**9
 
