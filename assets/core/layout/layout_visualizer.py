@@ -73,7 +73,7 @@ _layout_params = _180NM_CONFIG.get("layout_params", {})
 if not _layout_params:
     # Fallback to process_node_config defaults
     try:
-        from ..process_node_config import PROCESS_NODE_CONFIGS
+        from .process_node_config import PROCESS_NODE_CONFIGS
         _180nm_base_config = PROCESS_NODE_CONFIGS.get("T180", {})
         _layout_params = {
             "pad_width": _180nm_base_config.get("pad_width", 80),

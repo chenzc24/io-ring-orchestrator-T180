@@ -6,10 +6,10 @@ Supports blank type for domain mismatch cases
 """
 
 from typing import List, Optional
-from ..device_classifier import DeviceClassifier
-from ..position_calculator import PositionCalculator
+from .device_classifier import DeviceClassifier
+from .position_calculator import PositionCalculator
 from .inner_pad_handler import InnerPadHandler
-from ..process_node_config import get_process_node_config
+from .process_node_config import get_process_node_config
 
 def get_corner_domain(oriented_pads, corner_orientation, placement_order: str = "clockwise") -> str:
     """Get corner domain based on the two pads around the corner.

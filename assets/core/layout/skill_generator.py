@@ -7,8 +7,8 @@ Includes _generate_config_io_wires() method and 180nm-specific digital IO featur
 
 from typing import List, Dict, Tuple
 from .inner_pad_handler import InnerPadHandler
-from ..position_calculator import PositionCalculator
-from ..voltage_domain import VoltageDomainHandler
+from .position_calculator import PositionCalculator
+from .voltage_domain import VoltageDomainHandler
 
 class SkillGeneratorT180:
     """SKILL Script Generator for T180 process node"""

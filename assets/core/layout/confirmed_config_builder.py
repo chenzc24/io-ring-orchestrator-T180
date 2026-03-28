@@ -7,8 +7,8 @@ import time
 import traceback
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from ..device_classifier import DeviceClassifier
-from ..layout_validator import LayoutValidator
+from .device_classifier import DeviceClassifier
+from .layout_validator import LayoutValidator
 from .auto_filler import AutoFillerGeneratorT180
 
 
@@ -198,7 +198,7 @@ def run_t180_editor_confirmation_pipeline(
 
     # GUI mode: export intermediate JSON and wait for user confirmation
     try:
-        from ..editor_utils import export_to_editor_json
+        from .editor_utils import export_to_editor_json
         from .layout_visualizer import DEVICE_COLORS_180NM as VISUAL_COLORS
 
         json_path = Path(json_file)
