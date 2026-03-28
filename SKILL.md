@@ -190,7 +190,8 @@ Validation repair constraints:
 ```bash
 python3 $SCRIPTS_PATH/build_confirmed_config.py \
   {output_dir}/io_ring_intent_graph.json \
-  {output_dir}/io_ring_confirmed.json
+  {output_dir}/io_ring_confirmed.json \
+  --skip-editor
 ```
 
 Note: `build_confirmed_config.py` is hardcoded for T180 — no process node parameter needed.
@@ -350,7 +351,6 @@ Repair loop cap (applies to Step 10/11):
 ```
 io-ring-orchestrator-T180/
 ├── SKILL.md                          # This file
-├── structured_T180.md                # Source knowledge base
 ├── requirements.txt                  # Python requirements (minimal)
 │
 ├── scripts/                          # CLI entry point scripts (each self-contained)
