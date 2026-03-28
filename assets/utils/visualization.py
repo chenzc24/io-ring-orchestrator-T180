@@ -183,6 +183,7 @@ def get_io_ring_editor_html(initial_json: dict = None) -> str:
         .corner-pad { background: #FF6B6B; border-color: #c62828; color: #000; }
         .digital-pad { background: #32CD32; border-color: #228B22; color: #000; }
         .analog-pad { background: #4A90E2; border-color: #3A80D2; color: #000; }
+        .digital-io-pad { background: #32CD32; border-color: #228B22; color: #000; }  /* Digital IO like PDDW0412SCDG */
 
         .palette-item {
             padding: 8px;

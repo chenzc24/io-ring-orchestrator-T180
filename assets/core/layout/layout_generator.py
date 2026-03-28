@@ -30,7 +30,7 @@ class LayoutGeneratorT180:
     
     def __init__(self):
         # Get 180nm configuration
-        node_config = get_process_node_config("T180")
+        node_config = get_process_node_config()
         
         # Default configuration for 180nm
         self.config = {

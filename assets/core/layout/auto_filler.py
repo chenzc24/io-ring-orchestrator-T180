@@ -94,7 +94,7 @@ class AutoFillerGeneratorT180:
         self.classifier = DeviceClassifier(process_node="T180")
         
         # Get corner filler device from config
-        process_config = get_process_node_config("T180")
+        process_config = get_process_node_config()
         device_masters = process_config.get("device_masters", {})
         self.corner_filler = device_masters.get("corner_filler", "PFILLER10")
         filler_components = process_config.get("filler_components", {})

@@ -160,6 +160,7 @@ class InnerPadHandler:
                     "name": pad["name"],
                     "device": pad["device"],
                     "direction": pad.get("direction", "unknown"),
+                    "domain": "digital",
                     "is_inner": False
                 })
 
@@ -191,12 +192,13 @@ class InnerPadHandler:
 
         # Outer ring digital pads
         for pad in outer_pads:
-            if DeviceClassifier.is_digital_device(pad["device"]):
+            if DeviceClassifier.is_digital_device(pad["device"]) and pad.get("domain") == "digital":
                 digital_pads.append({
                     "position": pad["position"],
                     "orientation": pad["orientation"],
                     "name": pad["name"],
                     "device": pad["device"],
+                    "domain": "digital",
                     "direction": pad.get("direction", "unknown"),
                     "is_inner": False
                 })

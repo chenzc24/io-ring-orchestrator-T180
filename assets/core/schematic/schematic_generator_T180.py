@@ -86,33 +86,58 @@ class SchematicGenerator:
         return False
 
     def _sort_instances_for_schematic(self, instances: list, placement_order: str) -> list:
+        """Sort instances for schematic and re-index positions to be compact.
+
+        Only actual pads are counted for position indexing.
+        Fillers and blanks are excluded from schematic generation.
+        This ensures devices are placed with proper spacing.
+        """
         side_order = ["top", "right", "bottom", "left"]
         if str(placement_order).lower() != "clockwise":
             side_order = ["left", "bottom", "right", "top"]
 
-        side_items = {side: [] for side in ("left", "bottom", "right", "top")}
+        side_items_map = {side: [] for side in ("left", "bottom", "right", "top")}
         unsorted_items = []
 
         for index, inst in enumerate(instances):
-            side, idx1, _ = self._parse_position_for_order(inst.get("position"))
-            if side in side_items:
-                side_items[side].append((idx1, index, inst))
+            side, idx1, idx2 = self._parse_position_for_order(inst.get("position"))
+            if side in side_items_map:
+                side_items_map[side].append((idx1, idx2, index, inst))
             else:
                 unsorted_items.append((index, inst))
 
-        ordered = []
-        for side in side_order:
-            side_items[side].sort(key=lambda item: (item[0], item[1]))
-            for new_idx, (_, _, inst) in enumerate(side_items[side]):
+        # Rebuild with compact indexing - only count pads (not fillers/blanks)
+        rebuilt_by_side = {side: [] for side in side_items_map}
+        for side, items in side_items_map.items():
+            # Keep side order from original numeric position
+            items.sort(key=lambda item: (item[0], item[2], item[1]))
+
+            outer_count = 0
+            for _, _, _, inst in items:
                 inst_out = inst.copy()
-                inst_out["position"] = f"{side}_{new_idx}"
-                ordered.append(inst_out)
+                inst_type = str(inst.get("type", "")).strip().lower()
 
-        # Keep unknown/non-side positions at the end in original order.
-        unsorted_items.sort(key=lambda item: item[0])
-        ordered.extend([item[1] for item in unsorted_items])
+                # Only count pads for position indexing
+                if inst_type == "inner_pad":
+                    left_idx = max(outer_count - 1, 0)
+                    right_idx = outer_count
+                    inst_out["position"] = f"{side}_{left_idx}_{right_idx}"
+                else:
+                    inst_out["position"] = f"{side}_{outer_count}"
+                    outer_count += 1
 
-        return ordered
+                rebuilt_by_side[side].append(inst_out)
+
+        ordered_instances = []
+        for side in side_order:
+            ordered_instances.extend(rebuilt_by_side[side])
+
+        # Keep non-side items at the tail in their original relative order
+        if unsorted_items:
+            unsorted_items.sort(key=lambda item: item[0])
+            ordered_instances.extend([item[1] for item in unsorted_items])
+
+        return ordered_instances
     
     def get_device_offset(self, device_type: str) -> float:
         """Get offset based on device type and orientation (180nm process node)

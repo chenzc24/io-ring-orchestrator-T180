@@ -46,7 +46,8 @@ DEVICE_COLORS_180NM = {
     'PVSS1CDG': '#228B22',  # Dark green - Digital ground (VSS)
     'PVDD2CDG': '#90EE90',  # Light green - Digital power (VDD)
     'PVSS2CDG': '#228B22',  # Dark green - Digital ground (VSS)
-    
+    'PDDW0412SCDG': '#32CD32',  # Medium green - Digital IO
+
     # Analog IO devices (Blue shades)
     'PVDD1ANA': '#4A90E2',  # Medium blue - Analog power (VDD)
     'PVSS1ANA': '#3A80D2',  # Dark blue - Analog ground (VSS)
