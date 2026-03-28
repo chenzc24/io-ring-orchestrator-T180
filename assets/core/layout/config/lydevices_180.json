@@ -1,0 +1,74 @@
+{
+  "process": "180",
+  "digital_devices": [
+    "PVDD2CDG", "PVSS2CDG",
+    "PVDD1CDG", "PVSS1CDG",
+    "PDDW0412SCDG"
+  ],
+  "digital_io": [
+    "PDDW0412SCDG"
+  ],
+  "digital_vol": [
+    "PVDD2CDG", "PVSS2CDG",
+    "PVDD1CDG", "PVSS1CDG"
+  ],
+  "analog_devices": [
+    "PVDD2CDG", "PVSS2CDG",
+    "PVDD1CDG", "PVSS1CDG",
+    "PVDD1ANA", "PVSS1ANA"
+  ],
+  "analog_io": [
+    "PVDD1ANA", "PVSS1ANA"
+  ],
+  "analog_vol": [
+    "PVDD2CDG", "PVSS2CDG",
+    "PVDD1CDG", "PVSS1CDG"
+  ],
+  "corner_devices": ["PCORNER"],
+  "filler_devices": ["PFILLER10", "PFILLER20"],
+  "analog_filler": ["PFILLER10", "PFILLER20"],
+  "digital_filler": ["PFILLER10", "PFILLER20"],
+  "cut_devices": ["PFILLER10"],
+  "layout_params": {
+    "pad_width": 80,
+    "pad_height": 120,
+    "corner_size": 130,
+    "pad_spacing": 60,
+    "placement_order": "counterclockwise",
+    "pad_offset": 10
+  },
+  "skill_params": {
+    "layers": {
+      "config_layer": "METAL1",
+      "secondary_layer": "METAL2",
+      "pin_layer": "METAL6",
+      "core_label_layer": "M2"
+    },
+    "wire_widths": {
+      "config_width": 1,
+      "secondary_width": 1
+    },
+    "wire_offsets": {
+      "vdd_wire_offset": 5,
+      "gnd_wire_offset": 7
+    },
+    "via": {
+      "via_def_name": "M2_M1",
+      "via_params": {"cutRows": 2, "cutColumns": 2}
+    },
+    "pin_label_offsets": {
+      "R0": {"x": 40, "y": -70},
+      "R90": {"x": 70, "y": 40},
+      "R180": {"x": -40, "y": 70},
+      "R270": {"x": -70, "y": -40}
+    }
+  },
+  "device_masters": {
+    "default_library": "tpd018bcdnv5",
+    "default_view": "layout",
+    "pad_library": "tpb018v_cup_6lm",
+    "pad_master": "PAD70LU_TRL",
+    "corner_filler": "PFILLER10"
+  }
+}
+

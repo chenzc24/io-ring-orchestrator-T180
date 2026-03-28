@@ -1,0 +1,96 @@
+# Requirements for IO Ring Orchestrator Scripts
+
+## Tier 1: Standalone Validation (No Dependencies)
+
+**Script:** validate_intent.py
+
+**Requirements:**
+- Python 3.7+ (standard library only)
+- No external packages needed
+
+**Modules used:**
+- json, sys, pathlib, typing (all stdlib)
+
+---
+
+## Tier 2: AMS-IO-Agent Integration (Requires Installation)
+
+**Scripts:**
+- build_confirmed_config.py
+- generate_schematic.py
+- generate_layout.py
+- check_virtuoso_connection.py
+- run_il_with_screenshot.py
+- run_drc.py
+- run_lvs.py
+
+**Requirements:**
+- Python 3.7+
+- AMS-IO-Agent installation (from /AMS-IO-Agent)
+- AMS-IO-Agent dependencies:
+  - smolagents
+  - (other dependencies from AMS-IO-Agent/requirements.txt)
+
+**Setup:**
+
+Option 1 - Environment Variable:
+```bash
+export AMS_IO_AGENT_PATH=/path/to/AMS-IO-Agent
+```
+
+Option 2 - Install AMS-IO-Agent dependencies:
+```bash
+cd /path/to/AMS-IO-Agent
+pip install -r requirements.txt
+```
+
+---
+
+## Virtuoso-Dependent Scripts
+
+**Scripts:**
+- check_virtuoso_connection.py
+- run_il_with_screenshot.py
+- run_drc.py
+- run_lvs.py
+
+**Additional Requirements:**
+- Cadence Virtuoso installed and running
+- Proper Virtuoso environment variables set
+- Access to Virtuoso server
+
+---
+
+## Installation Quick Start
+
+**For validation only:**
+```bash
+# No installation needed!
+python3 validate_intent.py file.json
+```
+
+**For full features:**
+```bash
+# 1. Set AMS-IO-Agent path
+export AMS_IO_AGENT_PATH=/home/chenzc_intern25/AMS-IO-Agent_processes_combined/AMS-IO-Agent
+
+# 2. Install AMS-IO-Agent dependencies (if not already installed)
+cd $AMS_IO_AGENT_PATH
+pip install -r requirements.txt
+
+# 3. Test connection
+python3 check_virtuoso_connection.py
+```
+
+---
+
+## Compatibility
+
+- **Python:** 3.7+ (tested with 3.11)
+- **OS:** Linux (tested on RHEL/CentOS)
+- **AMS-IO-Agent:** 1.0+
+- **Virtuoso:** Virtuoso 6.x+
+
+---
+
+For detailed usage, see README.md in this directory.

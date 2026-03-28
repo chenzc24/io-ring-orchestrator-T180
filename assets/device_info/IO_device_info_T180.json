@@ -1,0 +1,527 @@
+{
+  "templates": {
+    "PVSS2CDG": {
+      "center_x": 0.0,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "VDD",
+          "x": -0.875,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "VSS",
+          "x": -0.875,
+          "y": 0.0,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VDDPST",
+          "x": -0.875,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": 0.875,
+          "y": 0.0,
+          "original_side": "bottom"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PVSS2CDG",
+      "device_view": "symbol"
+    },
+    "PVDD2CDG": {
+      "center_x": 0.0,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "VDD",
+          "x": -0.875,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "VSS",
+          "x": -0.875,
+          "y": 0.0,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": -0.875,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VDDPST",
+          "x": 0.875,
+          "y": 0.0,
+          "original_side": "bottom"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PVDD2CDG",
+      "device_view": "symbol"
+    },
+    "PVSS1CDG": {
+      "center_x": -0.138,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "VSS",
+          "x": -0.75,
+          "y": 0.25,
+          "original_side": "top"
+        },
+        {
+          "name": "VDD",
+          "x": -0.75,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "VDDPST",
+          "x": -0.75,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": -0.75,
+          "y": -0.25,
+          "original_side": "bottom"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PVSS1CDG",
+      "device_view": "symbol"
+    },
+    "PVDD1CDG": {
+      "center_x": -0.138,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "VDD",
+          "x": -0.75,
+          "y": 0.25,
+          "original_side": "top"
+        },
+        {
+          "name": "VSS",
+          "x": -0.75,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "VDDPST",
+          "x": -0.75,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": -0.75,
+          "y": -0.25,
+          "original_side": "bottom"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PVDD1CDG",
+      "device_view": "symbol"
+    },
+    "PVDD1ANA": {
+      "center_x": 0.0,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "VDD",
+          "x": -0.812,
+          "y": 0.25,
+          "original_side": "top"
+        },
+        {
+          "name": "VSS",
+          "x": -0.812,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "VDDPST",
+          "x": -0.812,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": -0.812,
+          "y": -0.25,
+          "original_side": "bottom"
+        },
+        {
+          "name": "AVDD",
+          "x": 0.812,
+          "y": 0.0,
+          "original_side": "bottom"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PVDD1ANA",
+      "device_view": "symbol"
+    },
+    "PVSS1ANA": {
+      "center_x": 0.0,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "VDD",
+          "x": -0.812,
+          "y": 0.25,
+          "original_side": "top"
+        },
+        {
+          "name": "VSS",
+          "x": -0.812,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "VDDPST",
+          "x": -0.812,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": -0.812,
+          "y": -0.25,
+          "original_side": "bottom"
+        },
+        {
+          "name": "AVSS",
+          "x": 0.812,
+          "y": 0.0,
+          "original_side": "bottom"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PVSS1ANA",
+      "device_view": "symbol"
+    },
+    "PDDW0412SCDG": {
+      "center_x": 0.0,
+      "center_y": 0.0,
+      "pins": [
+        {
+          "name": "PAD",
+          "x": 0.875,
+          "y": 0.0,
+          "original_side": "bottom"
+        },
+        {
+          "name": "DS",
+          "x": -0.875,
+          "y": 0.5,
+          "original_side": "top"
+        },
+        {
+          "name": "I",
+          "x": -0.875,
+          "y": 0.375,
+          "original_side": "top"
+        },
+        {
+          "name": "IE",
+          "x": -0.875,
+          "y": 0.25,
+          "original_side": "top"
+        },
+        {
+          "name": "OEN",
+          "x": -0.875,
+          "y": 0.125,
+          "original_side": "top"
+        },
+        {
+          "name": "PE",
+          "x": -0.875,
+          "y": -0.125,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VDD",
+          "x": -0.875,
+          "y": -0.25,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSS",
+          "x": -0.875,
+          "y": -0.375,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VDDPST",
+          "x": -0.875,
+          "y": -0.5,
+          "original_side": "bottom"
+        },
+        {
+          "name": "VSSPST",
+          "x": -0.875,
+          "y": -0.625,
+          "original_side": "bottom"
+        },
+        {
+          "name": "C",
+          "x": -0.875,
+          "y": 0.625,
+          "original_side": "top"
+        }
+      ],
+      "device_lib": "tpd018bcdnv5",
+      "device_cell": "PDDW0412SCDG",
+      "device_view": "symbol"
+    }
+  },
+  "pin_rules": {
+    "PVSS1ANA": {
+      "AVSS": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "{pad_name}"
+      },
+      "VDD": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "VDDPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOH"
+      },
+      "VSSPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOH"
+      }
+    },
+    "PVDD1ANA": {
+      "AVDD": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "{pad_name}"
+      },
+      "VDD": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "VDDPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOH"
+      },
+      "VSSPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOH"
+      }
+    },
+    "PVSS2CDG": {
+      "VSSPST": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "{pad_name}"
+      },
+      "VDD": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "VDDPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOH"
+      }
+    },
+    "PVDD2CDG": {
+      "VDDPST": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "{pad_name}"
+      },
+      "VDD": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "VSSPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOH"
+      }
+    },
+    "PVSS1CDG": {
+      "VDD": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "VDDPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOH"
+      },
+      "VSSPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOH"
+      }
+    },
+    "PVDD1CDG": {
+      "VDD": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "VDDPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOH"
+      },
+      "VSSPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOH"
+      }
+    },
+    "PDDW0412SCDG": {
+      "PAD": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "{pad_name}"
+      },
+      "VSSPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOH"
+      },
+      "VDDPST": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOH"
+      },
+      "VDD": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "VSS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "OEN": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "IE": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "DS": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "VIOL"
+      },
+      "PE": {
+        "create_pin": false,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      },
+      "C": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "{pad_name}_CORE"
+      },
+      "I": {
+        "create_pin": true,
+        "create_wire": true,
+        "create_label": true,
+        "label_pattern": "GIOL"
+      }
+    }
+  }
+}
