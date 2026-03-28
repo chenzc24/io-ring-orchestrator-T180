@@ -306,7 +306,7 @@ def get_io_ring_editor_html(initial_json: dict = None) -> str:
                     this.instances.forEach((item) => {
                         if (!item) return;
                         const t = (item.type || '').toLowerCase();
-                        if (t !== 'pad' && t !== 'inner_pad') return;
+                        if (t !== 'pad') return;
                         const pos = item.position;
                         if (typeof pos !== 'string') return;
                         const parts = pos.split('_');

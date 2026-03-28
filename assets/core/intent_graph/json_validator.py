@@ -156,18 +156,17 @@ def validate_config(config: Dict[str, Any]) -> bool:
         if position.startswith(('top_left', 'top_right', 'bottom_left', 'bottom_right')):
             corner_positions.add(position)
         else:
-            # Only count outer ring pads, don't count inner ring pads
+            # Only count outer ring pads
             instance_type = instance.get('type', 'pad')
-            if instance_type != 'inner_pad':  # Exclude inner ring pads
-                for side in ['left', 'right', 'top', 'bottom']:
-                    if position.startswith(side + '_'):
-                        position_counts[side] += 1
-                        break
+            for side in ['left', 'right', 'top', 'bottom']:
+                if position.startswith(side + '_'):
+                    position_counts[side] += 1
+                    break
         
         # Validate type field (if exists)
         if 'type' in instance:
             instance_type = instance['type']
-            valid_types = ['filler', 'pad', 'inner_pad', 'corner']
+            valid_types = ['filler', 'pad', 'corner']
             if instance_type not in valid_types:
                 print(f"❌ Error: instance[{i}] {name}'s type field value is incorrect: got '{instance_type}', expected one of {valid_types}")
                 return False
@@ -319,19 +318,6 @@ def validate_position_format(position: str, width: int, height: int, side_limits
         if not isinstance(limit, int) or limit <= 0:
             return False
         return 0 <= index < limit
-    
-    # Inner ring pad positions
-    pattern = r'^(left|right|top|bottom)_(\d+)_(\d+)$'
-    match = re.match(pattern, position)
-    if match:
-        side = match.group(1)
-        index1 = int(match.group(2))
-        index2 = int(match.group(3))
-        
-        limit = side_limits.get(side)
-        if not isinstance(limit, int) or limit <= 0:
-            return False
-        return 0 <= index1 < limit and 0 <= index2 < limit and index1 != index2
     
     return False
 

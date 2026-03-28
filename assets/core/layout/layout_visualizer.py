@@ -104,7 +104,7 @@ def parse_skill_layout_180nm(il_file_path: str) -> List[Dict]:
     - x, y: position coordinates
     - rotation: orientation (R0, R90, R180, R270)
     - device_type: device type for color mapping
-    - device_category: category (io, corner, filler, inner_pad)
+    - device_category: category (io, corner, filler)
     """
     with open(il_file_path, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -127,10 +127,6 @@ def parse_skill_layout_180nm(il_file_path: str) -> List[Dict]:
         device_type = cell_name
         device_category = 'io'  # Default category for IO devices
         
-        # Check if this is an inner pad (dual ring pad)
-        # Inner pads have instance names starting with "inner_pad_"
-        is_inner_pad = inst_name.startswith('inner_pad_')
-        
         # Use configuration file to classify devices
         digital_devices = _180NM_CONFIG.get("digital_devices", [])
         analog_devices = _180NM_CONFIG.get("analog_devices", [])
@@ -147,10 +143,7 @@ def parse_skill_layout_180nm(il_file_path: str) -> List[Dict]:
             device_category = 'filler'
         elif any(dev in cell_name for dev in digital_devices) or any(dev in cell_name for dev in analog_devices):
             device_type = cell_name
-            if is_inner_pad:
-                device_category = 'inner_pad'  # Inner pad (dual ring pad)
-            else:
-                device_category = 'io'  # IO device category
+            device_category = 'io'  # IO device category
         elif 'CORNER' in cell_name or 'PCORNER' in cell_name:
             # Fallback for corner devices
             device_type = 'PCORNER'
@@ -166,10 +159,7 @@ def parse_skill_layout_180nm(il_file_path: str) -> List[Dict]:
         elif 'PVDD' in cell_name or 'PVSS' in cell_name or 'PDDW' in cell_name:
             # Fallback for power/ground/IO devices
             device_type = cell_name
-            if is_inner_pad:
-                device_category = 'inner_pad'
-            else:
-                device_category = 'io'
+            device_category = 'io'
         
         devices.append({
             'inst_name': inst_name,
@@ -395,10 +385,6 @@ def visualize_layout_T180(il_file_path: str, output_path: Optional[str] = None) 
         if device_category == 'corner':
             width = CORNER_SIZE_180NM
             height = CORNER_SIZE_180NM
-        elif device_category == 'inner_pad':
-            # Inner pad (dual ring pad): same size as regular pad for 180nm
-            width = PAD_WIDTH_180NM
-            height = PAD_HEIGHT_180NM
         elif device_category == 'filler':
             # Filler size depends on type: PFILLER10 is 10×120, PFILLER20 is 20×120 (or 80×120)
             if 'PFILLER10' in device_type:
@@ -423,17 +409,7 @@ def visualize_layout_T180(il_file_path: str, output_path: Optional[str] = None) 
         )
         
         # Create rectangle with thicker border for better visibility
-        # Inner pads use dashed border to distinguish from regular IO devices
-        # Blank uses red color with dashed border
-        if device_category == 'inner_pad':
-            # Inner pad: dashed border using FancyBboxPatch for better style support
-            rect = patches.FancyBboxPatch(
-                (rect_x, rect_y), rect_w, rect_h,
-                boxstyle='round,pad=0',
-                linewidth=2, edgecolor='black', facecolor=color, alpha=0.8,
-                linestyle='--'  # Dashed border for inner pad
-            )
-        elif device_category == 'blank':
+        if device_category == 'blank':
             # Blank: red color with dashed border
             rect = patches.Rectangle(
                 (rect_x, rect_y), rect_w, rect_h,
@@ -448,18 +424,11 @@ def visualize_layout_T180(il_file_path: str, output_path: Optional[str] = None) 
         ax.add_patch(rect)
         
         # Add text label in center
-        if device_category == 'io' or device_category == 'inner_pad':
+        if device_category == 'io':
             # Extract signal name from instance name
             signal_name = inst_name
-            # Clean up: remove side and position indicators if present
-            if device_category == 'inner_pad':
-                # Remove "inner_pad_" prefix first
-                signal_name = re.sub(r'^inner_pad_', '', signal_name)
-                # Remove position indicators like _left_0_1, _right_6_7
-                signal_name = re.sub(r'_(left|right|top|bottom)_\d+_\d+$', '', signal_name)
-            else:
-                # Regular IO: remove _(left|right|top|bottom)_\d+$
-                signal_name = re.sub(r'_(left|right|top|bottom)_\d+$', '', signal_name)
+            # Regular IO: remove _(left|right|top|bottom)_\d+$
+            signal_name = re.sub(r'_(left|right|top|bottom)_\d+$', '', signal_name)
             
             # Get device type (cell_name)
             device_type_label = device['cell_name']
@@ -487,8 +456,6 @@ def visualize_layout_T180(il_file_path: str, output_path: Optional[str] = None) 
             font_size = 6
         elif device_category == 'blank':
             font_size = 6
-        elif device_category == 'inner_pad':
-            font_size = 7
         else:  # io (IO devices)
             font_size = 7
         
@@ -655,7 +622,7 @@ def visualize_layout_from_components_T180(layout_components: List[Dict], output_
             width = FILLER10_WIDTH_180NM
             height = FILLER10_HEIGHT_180NM
             color = '#FF0000'  # Red for blank
-        else:  # pad or inner_pad
+        else:  # pad
             width = PAD_WIDTH_180NM
             height = PAD_HEIGHT_180NM
         

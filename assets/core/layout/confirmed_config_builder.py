@@ -54,7 +54,7 @@ def _ensure_unique_nonfunctional_names(classifier: DeviceClassifier, components:
 
 def _prepare_t180_components(
     source_json_path: str,
-) -> Tuple[Any, DeviceClassifier, LayoutValidator, AutoFillerGeneratorT180, dict, List[dict], List[dict]]:
+) -> Tuple[Any, DeviceClassifier, LayoutValidator, AutoFillerGeneratorT180, dict, List[dict]]:
     with open(source_json_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
 
@@ -117,12 +117,9 @@ def _prepare_t180_components(
     auto_filler_generator = AutoFillerGeneratorT180(generator.config)
 
     outer_pads = []
-    inner_pads = []
     corners = []
     for instance in instances:
-        if instance.get("type") == "inner_pad":
-            inner_pads.append(instance)
-        elif instance.get("type") == "pad":
+        if instance.get("type") == "pad":
             outer_pads.append(instance)
         elif instance.get("type") == "corner":
             corners.append(instance)
@@ -144,10 +141,10 @@ def _prepare_t180_components(
     if has_input_fillers:
         all_components_with_fillers = instances
     else:
-        all_components_with_fillers = auto_filler_generator.auto_insert_default_fillers(validation_source_components, inner_pads)
+        all_components_with_fillers = auto_filler_generator.auto_insert_default_fillers(validation_source_components)
 
     all_components_with_fillers = _ensure_unique_nonfunctional_names(classifier, all_components_with_fillers)
-    return generator, classifier, layout_validator, auto_filler_generator, ring_config, all_components_with_fillers, inner_pads
+    return generator, classifier, layout_validator, auto_filler_generator, ring_config, all_components_with_fillers
 
 
 def _import_traceback_if_error() -> str:
@@ -319,7 +316,7 @@ def build_confirmed_config_from_io_config(
         output_stem = output_stem[: -len("_confirmed")]
     intermediate_path = confirmed_path.with_name(f"{output_stem}_intermediate_editor.json")
 
-    generator, _, _, _, ring_config, all_components_with_fillers, _ = _prepare_t180_components(str(source_path))
+    generator, _, _, _, ring_config, all_components_with_fillers = _prepare_t180_components(str(source_path))
 
     pipeline_result = run_t180_editor_confirmation_pipeline(
         json_file=str(source_path),

@@ -6,7 +6,7 @@ Includes _generate_config_io_wires() method and 180nm-specific digital IO featur
 """
 
 from typing import List, Dict, Tuple
-from .inner_pad_handler import InnerPadHandler
+from .device_classifier import DeviceClassifier
 from .position_calculator import PositionCalculator
 from .voltage_domain import VoltageDomainHandler
 
@@ -15,7 +15,6 @@ class SkillGeneratorT180:
     
     def __init__(self, config: dict):
         self.config = config
-        self.inner_pad_handler = InnerPadHandler(config)
         self.position_calculator = PositionCalculator(config)
     
     def _format_core_label(self, signal_name: str) -> str:
@@ -172,13 +171,33 @@ class SkillGeneratorT180:
 
         return skill_commands, side_endpoints
 
-    def generate_digital_io_features_with_inner(self, outer_pads: List[dict], inner_pads: List[dict], ring_config: dict) -> List[str]:
-        """Generate digital IO features for 180nm (configuration lines + secondary lines + pin labels), supporting inner pads."""
+    def generate_digital_io_features(self, outer_pads: List[dict], ring_config: dict) -> List[str]:
+        """Generate digital IO features for 180nm (configuration lines + secondary lines + pin labels)"""
         skill_commands = []
-        # Get all digital pads (not distinguishing IO)
-        all_digital_pads = self.inner_pad_handler.get_all_digital_pads_with_inner_any(outer_pads, inner_pads, ring_config)
-        # Get all digital IO pads
-        digital_io_pads = self.inner_pad_handler.get_all_digital_pads_with_inner(outer_pads, inner_pads, ring_config)
+        # Get all digital pads (outer ring only)
+        all_digital_pads = []
+        for pad in outer_pads:
+            if DeviceClassifier.is_digital_device(pad["device"]) and pad.get("domain") == "digital":
+                all_digital_pads.append({
+                    "position": pad["position"],
+                    "orientation": pad["orientation"],
+                    "name": pad["name"],
+                    "device": pad["device"],
+                    "domain": "digital",
+                    "direction": pad.get("direction", "unknown"),
+                })
+        # Get all digital IO pads (outer ring only)
+        digital_io_pads = []
+        for pad in outer_pads:
+            if DeviceClassifier.is_digital_io_device(pad["device"]):
+                digital_io_pads.append({
+                    "position": pad["position"],
+                    "orientation": pad["orientation"],
+                    "name": pad["name"],
+                    "device": pad["device"],
+                    "direction": pad.get("direction", "unknown"),
+                    "domain": "digital",
+                })
         if not all_digital_pads:
             return skill_commands
         
@@ -331,11 +350,10 @@ class SkillGeneratorT180:
                     )
         return skill_commands
     
-    def generate_pin_labels_with_inner(self, outer_pads: List[dict], inner_pads: List[dict], ring_config: dict) -> List[str]:
-        """Generate main pin labels for 180nm, supporting inner pads"""
+    def generate_pin_labels(self, outer_pads: List[dict], ring_config: dict) -> List[str]:
+        """Generate main pin labels for 180nm"""
         skill_commands = []
-        
-        # Main pin labels for outer pads
+
         for pad in outer_pads:
             x, y = pad["position"]
             orient = pad["orientation"]
@@ -375,55 +393,7 @@ class SkillGeneratorT180:
                 
                 core_label = self._format_core_label(name)
                 skill_commands.append(f'dbCreateLabel(cv list("M2" "pin") {core_pos} "{core_label}" "{core_just}" "{core_orient}" "roman" 2)')
-        
-        # Main pin labels for inner pads (move 152 units inward, opposite direction)
-        for inner_pad in inner_pads:
-            # If position is already absolute coordinates, use directly
-            if isinstance(inner_pad["position"], list):
-                position = inner_pad["position"]
-                orient = inner_pad["orientation"]
-            else:
-                # Otherwise, recalculate position
-                position, orient = self.inner_pad_handler.calculate_inner_pad_position(inner_pad["position"], outer_pads, ring_config)
-            
-            x, y = position
-            name = inner_pad["name"]
-            
-            # Calculate pin label position for inner pads (move inward) and direction (opposite to outer)
-            if orient == "R0":  # Bottom edge inner pad
-                pin_pos = f'list({x + 10} {y + 152})'  # Move inward (up)
-                justification, pin_orient = "centerLeft", "R90"  # Opposite direction
-            elif orient == "R90":  # Right edge inner pad
-                pin_pos = f'list({x - 152} {y + 10})'  # Move inward (left)
-                justification, pin_orient = "centerRight", "R0"  # Opposite direction
-            elif orient == "R180":  # Top edge inner pad
-                pin_pos = f'list({x - 10} {y - 152})'  # Move inward (down)
-                justification, pin_orient = "centerRight", "R90"  # Opposite direction
-            elif orient == "R270":  # Left edge inner pad
-                pin_pos = f'list({x + 152} {y - 10})'  # Move inward (right)
-                justification, pin_orient = "centerLeft", "R0"  # Opposite direction
-            
-            skill_commands.append(f'dbCreateLabel(cv list("AP" "pin") {pin_pos} "{name}" "{justification}" "{pin_orient}" "roman" 10)')
-            
-            # Create core label for inner pad voltage domain components
-            if VoltageDomainHandler.is_voltage_domain_provider(inner_pad):
-                # Calculate core label position for inner pads (within the pad, opposite to outer)
-                if orient == "R0":  # Bottom edge inner pad
-                    core_pos = f'list({x + 10} {y + ring_config["pad_height"] - 0.1})'
-                    core_just, core_orient = "centerLeft", "R90"
-                elif orient == "R90":  # Right edge inner pad
-                    core_pos = f'list({x - ring_config["pad_height"] + 0.1} {y + 10})'
-                    core_just, core_orient = "centerRight", "R0"
-                elif orient == "R180":  # Top edge inner pad
-                    core_pos = f'list({x - 10} {y - ring_config["pad_height"] + 0.1})'
-                    core_just, core_orient = "centerRight", "R90"
-                elif orient == "R270":  # Left edge inner pad
-                    core_pos = f'list({x + ring_config["pad_height"] - 0.1} {y - 10})'
-                    core_just, core_orient = "centerLeft", "R0"
-                
-                core_label = self._format_core_label(name)
-                skill_commands.append(f'dbCreateLabel(cv list("M2" "pin") {core_pos} "{core_label}" "{core_just}" "{core_orient}" "roman" 2)')
-        
+
         return skill_commands
 
     def generate_psub2(self, all_components: List[dict], corners: List[dict], ring_config: dict) -> List[str]:

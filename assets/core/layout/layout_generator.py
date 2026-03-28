@@ -16,7 +16,6 @@ from .voltage_domain import VoltageDomainHandler
 from .position_calculator import PositionCalculator
 from .filler_generator import FillerGenerator
 from .layout_validator import LayoutValidator
-from .inner_pad_handler import InnerPadHandler
 from .skill_generator import SkillGeneratorT180
 from .auto_filler import AutoFillerGeneratorT180
 from .confirmed_config_builder import build_confirmed_config_from_io_config
@@ -54,7 +53,6 @@ class LayoutGeneratorT180:
         self.voltage_domain_handler = VoltageDomainHandler()
         self.filler_generator = FillerGenerator()
         self.layout_validator = LayoutValidator()
-        self.inner_pad_handler = InnerPadHandler(self.config)
         self.skill_generator = SkillGeneratorT180(self.config)
         self.auto_filler_generator = AutoFillerGeneratorT180(self.config)
         # Instantiate classifier for instance-based queries (matching merge_source)
@@ -72,7 +70,6 @@ class LayoutGeneratorT180:
         self.config.update(config)
         self.position_calculator.config = self.config
         self.position_calculator.current_ring_config = self.config
-        self.inner_pad_handler.config = self.config
         self.skill_generator.config = self.config
         self.auto_filler_generator.config = self.config
     
@@ -157,8 +154,6 @@ class LayoutGeneratorT180:
         }
 
         for instance in instances:
-            if instance.get("type") == "inner_pad":
-                continue
             side, index = self._parse_side_index(self._extract_relative_position(instance))
             if side is None or index is None:
                 continue
@@ -242,7 +237,6 @@ class LayoutGeneratorT180:
         - absolute [x, y] positions (kept, orientation preserved if present)
         """
         converted_components = []
-        inner_pads = []
         side_sequences = self._build_t180_side_sequences(instances, ring_config)
         
         for instance in instances:
@@ -263,10 +257,6 @@ class LayoutGeneratorT180:
             view_name = instance.get("view_name", "layout")
             geom_width, geom_height = self._resolve_component_geometry(instance, component_type, ring_config)
             
-            if component_type == "inner_pad":
-                inner_pads.append(instance)
-                continue
-
             has_relative_semantics = isinstance(relative_pos, str) and bool(relative_pos)
             if isinstance(raw_position, (list, tuple)) and len(raw_position) == 2 and not has_relative_semantics:
                 position = [raw_position[0], raw_position[1]]
@@ -316,40 +306,7 @@ class LayoutGeneratorT180:
         has_corners = any(comp.get("type") == "corner" for comp in converted_components)
         if not has_corners:
             raise ValueError("❌ Error: Corner components are missing in the intent graph!")
-        
-        # Handle inner pads
-        for inner_pad in inner_pads:
-            name = inner_pad.get("name", "")
-            device = inner_pad.get("device", "")
-            if not device:
-                raise ValueError(f"❌ Error: Inner pad '{name}' must have 'device' field")
-            
-            position_str = inner_pad.get("position", "")
-            direction = inner_pad.get("direction", "")
-            voltage_domain = inner_pad.get("voltage_domain", {})
-            pin_connection = inner_pad.get("pin_connection", {})
-            
-            outer_pads_for_inner = [comp for comp in converted_components if comp.get("type") == "pad"]
-            position, orientation = self.inner_pad_handler.calculate_inner_pad_position(position_str, outer_pads_for_inner, ring_config)
-            
-            component = {
-                "type": "inner_pad",
-                "name": name,
-                "device": device,  # Use device field
-                "position": position,
-                "orientation": orientation,
-                "position_str": position_str
-            }
-            
-            if direction:
-                component["direction"] = direction
-            if voltage_domain:
-                component["voltage_domain"] = voltage_domain
-            if pin_connection:
-                component["pin_connection"] = pin_connection
-            
-            converted_components.append(component)
-        
+
         return converted_components
 
 
@@ -357,7 +314,6 @@ def generate_layout_skill_from_components(
     generator: LayoutGeneratorT180,
     ring_config: dict,
     all_components_with_fillers: List[dict],
-    inner_pads: List[dict],
     output_file: str,
 ):
     """Generate 180nm layout SKILL script from finalized components only."""
@@ -403,8 +359,6 @@ def generate_layout_skill_from_components(
         return components
 
     final_components_input = list(all_components_with_fillers)
-    if not any(comp.get("type") == "inner_pad" for comp in final_components_input) and inner_pads:
-        final_components_input.extend(inner_pads)
 
     final_components = generator.convert_relative_to_absolute(
         final_components_input,
@@ -415,9 +369,8 @@ def generate_layout_skill_from_components(
 
     outer_pads = [comp for comp in final_components if comp.get("type") == "pad"]
     corners = [comp for comp in final_components if comp.get("type") == "corner"]
-    inner_pads = [comp for comp in final_components if comp.get("type") == "inner_pad"]
     all_instances = final_components
-    all_components_with_fillers = [comp for comp in final_components if comp.get("type") != "inner_pad"]
+    all_components_with_fillers = final_components
     filler_components = [
         comp
         for comp in all_instances
@@ -429,7 +382,7 @@ def generate_layout_skill_from_components(
     
     skill_commands.append("cv = geGetWindowCellView()")
     # File header
-    skill_commands.append("; Generated Layout Script with Dual Ring Support")
+    skill_commands.append("; Generated Layout Script for T180")
     skill_commands.append("")
     
     # Sort components
@@ -514,14 +467,14 @@ def generate_layout_skill_from_components(
     skill_commands.append("")
     
     # 5. Digital IO features
-    skill_commands.append("; ==================== Digital IO Features (with Inner Pad Support) ====================")
-    digital_io_commands = generator.skill_generator.generate_digital_io_features_with_inner(outer_pads, inner_pads, ring_config)
+    skill_commands.append("; ==================== Digital IO Features ====================")
+    digital_io_commands = generator.skill_generator.generate_digital_io_features(outer_pads, ring_config)
     skill_commands.extend(digital_io_commands)
     skill_commands.append("")
-    
+
     # 6. Pin labels
-    skill_commands.append("; ==================== Pin Labels (with Inner Pad Support) ====================")
-    pin_label_commands = generator.skill_generator.generate_pin_labels_with_inner(outer_pads, inner_pads, ring_config)
+    skill_commands.append("; ==================== Pin Labels ====================")
+    pin_label_commands = generator.skill_generator.generate_pin_labels(outer_pads, ring_config)
     skill_commands.extend(pin_label_commands)
     skill_commands.append("")
     skill_commands.append("dbSave(cv)")
@@ -544,12 +497,10 @@ def generate_layout_skill_from_components(
     
     # Calculate chip size (matching merge_source)
     chip_width, chip_height = ring_config.get("chip_width", 2250), ring_config.get("chip_height", 2160)
-    total_components = len(all_components_with_fillers) + len(inner_pads) * 2  # Inner pads generate 2 components each
-    
+    total_components = len(all_components_with_fillers)
+
     print(f"📐 Chip size: {chip_width} x {chip_height}")
     print(f"📊 Total components: {total_components}")
-    if inner_pads:
-        print(f"📊 Inner ring pads: {len(inner_pads)}")
     print(f"✅ Layout Skill script generated: {output_file}")
     
     return output_file
@@ -568,14 +519,12 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
     generator = LayoutGeneratorT180()
     generator.set_config(ring_config)
 
-    inner_pads = [inst for inst in instances if isinstance(inst, dict) and inst.get("type") == "inner_pad"]
-    all_components_with_fillers = [inst for inst in instances if isinstance(inst, dict) and inst.get("type") != "inner_pad"]
+    all_components_with_fillers = [inst for inst in instances if isinstance(inst, dict)]
 
     return generate_layout_skill_from_components(
         generator=generator,
         ring_config=ring_config,
         all_components_with_fillers=all_components_with_fillers,
-        inner_pads=inner_pads,
         output_file=output_file,
     )
 

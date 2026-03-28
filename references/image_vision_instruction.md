@@ -28,7 +28,7 @@ You must extract signals in this specific physical order. Do not follow standard
 
 - **If Double Ring:** Under "Additionally...", list the inner pads. Use the syntax: "insert an inner ring pad [Inner_Name] between [Outer_Pad_A] and [Outer_Pad_B]" based on visual alignment.
 
-- **If Single Ring:** Leave the "Additionally..." section empty or write "None".
+- **If Single Ring:** Leave the "Additionally..." section empty or write "None". (T180 is always Single Ring)
 
 - **neglect the devices named "PFILLER*".
 

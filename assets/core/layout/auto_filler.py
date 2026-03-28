@@ -8,7 +8,6 @@ Supports blank type for domain mismatch cases
 from typing import List, Optional
 from .device_classifier import DeviceClassifier
 from .position_calculator import PositionCalculator
-from .inner_pad_handler import InnerPadHandler
 from .process_node_config import get_process_node_config
 
 def get_corner_domain(oriented_pads, corner_orientation, placement_order: str = "clockwise") -> str:
@@ -90,7 +89,6 @@ class AutoFillerGeneratorT180:
     def __init__(self, config: dict):
         self.config = config
         self.position_calculator = PositionCalculator(config)
-        self.inner_pad_handler = InnerPadHandler(config)
         self.classifier = DeviceClassifier(process_node="T180")
         
         # Get corner filler device from config
@@ -100,9 +98,8 @@ class AutoFillerGeneratorT180:
         filler_components = process_config.get("filler_components", {})
         self.default_filler = filler_components.get("digital_10", "PFILLER10")
 
-    def auto_insert_default_fillers(self, layout_components: List[dict], inner_pads: List[dict]) -> List[dict]:
+    def auto_insert_default_fillers(self, layout_components: List[dict]) -> List[dict]:
         """Auto-insert fillers using relative positions only (no absolute coordinate calculation)."""
-        _ = inner_pads
         # Check if filler components are already included
         existing_fillers = [comp for comp in layout_components if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device", ""), "T180")]
         

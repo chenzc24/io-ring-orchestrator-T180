@@ -79,7 +79,7 @@ class SchematicGenerator:
 
     def _is_schematic_consumable_instance(self, inst: dict) -> bool:
         inst_type = str(inst.get("type", "")).strip().lower()
-        if inst_type in {"pad", "inner_pad"}:
+        if inst_type in {"pad"}:
             return True
         if inst_type in {"", "instance"}:
             return True
@@ -115,16 +115,8 @@ class SchematicGenerator:
             outer_count = 0
             for _, _, _, inst in items:
                 inst_out = inst.copy()
-                inst_type = str(inst.get("type", "")).strip().lower()
-
-                # Only count pads for position indexing
-                if inst_type == "inner_pad":
-                    left_idx = max(outer_count - 1, 0)
-                    right_idx = outer_count
-                    inst_out["position"] = f"{side}_{left_idx}_{right_idx}"
-                else:
-                    inst_out["position"] = f"{side}_{outer_count}"
-                    outer_count += 1
+                inst_out["position"] = f"{side}_{outer_count}"
+                outer_count += 1
 
                 rebuilt_by_side[side].append(inst_out)
 
@@ -147,51 +139,17 @@ class SchematicGenerator:
         # 180nm does not require device offset
         return 0.0
     
-    def get_outer_pad_positions(self, instances: list, ring_config: dict) -> list:
-        """Get outer ring pad position information for inner ring pad position calculation"""
-        outer_pads = []
-        for inst in instances:
-            # Only process outer ring pads, exclude corner points and inner ring pads
-            if inst.get('type') == 'pad':
-                # Calculate outer ring pad position
-                position_desc = inst['position']
-                if isinstance(position_desc, tuple):
-                    # Already absolute coordinates
-                    x, y = position_desc
-                else:
-                    # Need to calculate position
-                    x, y = self.calculate_position_from_description(
-                        position_desc, ring_config, inst.get('device'), 
-                        inst.get('orientation'), False, 
-                        ring_config.get('placement_order') == 'clockwise'
-                    )
-                
-                outer_pads.append({
-                    'name': inst['name'],
-                    'position': (x, y),
-                    'orientation': inst.get('orientation', 'R0'),
-                    'side': position_desc.split('_')[0] if '_' in str(position_desc) else 'left'
-                })
-        
-        return outer_pads
-    
     def normalize_device_config(self, config: dict) -> dict:
         """Standardize device configuration, handle field compatibility"""
         if 'position' not in config:
             return config
-        
+
         # Normalize direction value to lowercase for robust matching
         if 'direction' in config and isinstance(config['direction'], str):
             config['direction'] = config['direction'].strip().lower()
-        
-        # Handle inner ring pad identification
-        if config.get('type') == 'inner_pad':
-            config['is_inner_ring'] = True
-        
-        # Check if it's an inner ring pad
-        is_inner_pad = config.get('type') == 'inner_pad' or config.get('is_inner_ring', False)
+
         position_desc = config['position']
-        
+
         # If user didn't specify device, need to provide base type
         if 'device' not in config:
             raise ValueError("device must be specified")
@@ -237,12 +195,12 @@ class SchematicGenerator:
         
         return config
     
-    def calculate_position_from_description(self, position_desc, ring_config=None, device=None, orientation=None, is_inner_ring=False, clockwise=False, outer_pads=None):
-        """Convert position description to specific coordinates, considering device offset and inner ring pad offset"""
+    def calculate_position_from_description(self, position_desc, ring_config=None, device=None, orientation=None, clockwise=False):
+        """Convert position description to specific coordinates"""
         if isinstance(position_desc, tuple):
             # If already a coordinate tuple, return directly
             return position_desc
-        
+
         if not ring_config:
             # Default configuration
             ring_config = {
@@ -253,48 +211,9 @@ class SchematicGenerator:
         if '_' in position_desc:
             parts = position_desc.split('_')
             if len(parts) == 2:
-                # Outer ring pad format: left_0, bottom_1, etc.
+                # Pad format: left_0, bottom_1, etc.
                 side, index_str = parts
                 index = int(index_str)
-                is_between_pads = False
-            elif len(parts) == 3 and is_inner_ring:
-                # Inner ring pad format: left_1_2 means inserted between left_1 and left_2
-                side, index1_str, index2_str = parts
-                index1 = int(index1_str)
-                index2 = int(index2_str)
-                
-                # If outer ring pad information is available, use interpolation calculation
-                if outer_pads:
-                    # Find outer ring pads for corresponding side
-                    side_pads = [pad for pad in outer_pads if pad['side'] == side]
-                    if len(side_pads) > max(index1, index2):
-                        # Get positions of two outer ring pads
-                        pad1 = side_pads[index1]
-                        pad2 = side_pads[index2]
-                        x1, y1 = pad1['position']
-                        x2, y2 = pad2['position']
-                        
-                        # Calculate middle position
-                        x = (x1 + x2) / 2.0
-                        y = (y1 + y2) / 2.0
-                        
-                        # Apply inner ring pad offset (move outward by 4 units)
-                        inner_offset = 4.0
-                        if side == 'left':
-                            x -= inner_offset  # Move left (outward)
-                        elif side == 'right':
-                            x += inner_offset  # Move right (outward)
-                        elif side == 'bottom':
-                            y -= inner_offset  # Move down (outward)
-                        elif side == 'top':
-                            y += inner_offset  # Move up (outward)
-                        
-                        # For 180nm, device offset is not applied
-                        return (x, y)
-                
-                # If no outer ring pad information, use original simple calculation
-                index = (index1 + index2) / 2.0
-                is_between_pads = True
             else:
                 raise ValueError(f"Cannot parse position description: {position_desc}")
         else:
@@ -369,19 +288,6 @@ class SchematicGenerator:
                 y = height
         else:
             raise ValueError(f"Unknown side description: {side}")
-        
-        # Apply inner ring pad offset (move outward by 4 units)
-        if is_inner_ring:
-            inner_offset = 4.0
-            
-            if side == 'left':
-                x -= inner_offset  # Move left (outward)
-            elif side == 'right':
-                x += inner_offset  # Move right (outward)
-            elif side == 'bottom':
-                y -= inner_offset  # Move down (outward)
-            elif side == 'top':
-                y += inner_offset  # Move up (outward)
         
         # For 180nm, device offset is not applied
         return (x, y)
@@ -547,10 +453,7 @@ class SchematicGenerator:
             schematic_instances,
             placement_order,
         )
-        
-        # Get outer ring pad position information for inner ring pad position calculation
-        outer_pads = self.get_outer_pad_positions(schematic_instances, ring_config)
-        
+
         commands = []
         commands.append("cv = geGetWindowCellView()")
         
@@ -573,32 +476,19 @@ class SchematicGenerator:
             
             # Calculate position coordinates
             position_desc = inst['position']
-            is_inner_ring = inst.get('is_inner_ring', False)  # Get inner ring pad identifier
             x_pos, y_pos = self.calculate_position_from_description(
-                position_desc, ring_config, device, inst['orientation'], 
-                is_inner_ring, clockwise, outer_pads if is_inner_ring else None
+                position_desc, ring_config, device, inst['orientation'], clockwise
             )
             orientation = inst['orientation']
-            
+
             # Create device instance
             # Combine name and position to ensure instance name uniqueness
             if isinstance(position_desc, tuple):
                 # If it's a coordinate tuple, use coordinate values
                 instance_name = f"{inst['name']}_{position_desc[0]}_{position_desc[1]}"
             else:
-                # If it's string format, handle special format for inner ring pads
-                if is_inner_ring and '_' in position_desc:
-                    parts = position_desc.split('_')
-                    if len(parts) == 3:
-                        # Inner ring pad format: left_1_2 -> left12
-                        side, index1, index2 = parts
-                        instance_name = f"{inst['name']}_{side}{index1}{index2}"
-                    else:
-                        # Normal format: left_0 -> left0
-                        instance_name = f"{inst['name']}_{position_desc.replace('_', '')}"
-                else:
-                    # Normal format: left_0 -> left0
-                    instance_name = f"{inst['name']}_{position_desc.replace('_', '')}"
+                # Normal format: left_0 -> left0
+                instance_name = f"{inst['name']}_{position_desc.replace('_', '')}"
             # Sanitize instance name for SKILL compatibility (replace < > with _)
             instance_name = self.sanitize_skill_instance_name(instance_name)
             commands.append(f'dbCreateInst(cv {device.lower()}Master "{instance_name}" \'({x_pos} {y_pos}) "{orientation}")')

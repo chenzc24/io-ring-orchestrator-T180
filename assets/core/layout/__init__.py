@@ -7,7 +7,6 @@ Layout Generation Module - T180 (180nm) specific
 from .layout_generator import LayoutGeneratorT180, generate_layout_from_json
 from .skill_generator import SkillGeneratorT180
 from .auto_filler import AutoFillerGeneratorT180
-from .inner_pad_handler import InnerPadHandler
 from .layout_visualizer import visualize_layout_T180, visualize_layout_from_components_T180
 from .confirmed_config_builder import build_confirmed_config_from_io_config
 from .device_classifier import DeviceClassifier
@@ -23,7 +22,6 @@ __all__ = [
     'generate_layout_from_json',
     'SkillGeneratorT180',
     'AutoFillerGeneratorT180',
-    'InnerPadHandler',
     'visualize_layout_T180',
     'visualize_layout_from_components_T180',
     'build_confirmed_config_from_io_config',

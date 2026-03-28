@@ -89,8 +89,7 @@ If the user does not provide explicit values for `pad_width`, `pad_height`, `pad
 
 ### Pad Count Rules
 
-- `top_count`, `bottom_count`, `left_count`, `right_count` refer to **Outer Ring Pads ONLY**.
-- Do not include inner pads in these counts.
+- `top_count`, `bottom_count`, `left_count`, `right_count` refer to **Ring Pads ONLY**.
 - The signal list must contain exactly `top_count + bottom_count + left_count + right_count` signals.
 
 ## Output Contract (Draft JSON)
