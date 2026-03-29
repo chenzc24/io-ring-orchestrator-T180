@@ -2,67 +2,65 @@
 # -*- coding: utf-8 -*-
 """
 Auto Filler Component Generation Module for T180
-Supports blank type for domain mismatch cases
+Supports multi-voltage domain with BLANK for domain isolation
 """
 
 from typing import List, Optional
 from .device_classifier import DeviceClassifier
+from .voltage_domain import VoltageDomainHandler
 from .position_calculator import PositionCalculator
 from .process_node_config import get_process_node_config
+
 
 def get_corner_domain(oriented_pads, corner_orientation, placement_order: str = "clockwise") -> str:
     """Get corner domain based on the two pads around the corner.
 
     If the two adjacent pads share the same domain, return that domain;
-    otherwise, default to "analog". If either pad is missing, also
-    default to "analog".
+    otherwise, default to the relevant pad's domain. If either pad is
+    missing, default to "analog".
     """
     pad1 = None
     pad2 = None
     is_clockwise = str(placement_order).lower() == "clockwise"
 
     if is_clockwise:
-        # Start-corner mapping for clockwise indices:
-        # top->TL, right->TR, bottom->BR, left->BL
-        if corner_orientation == "R180":  # Top edge
+        if corner_orientation == "R180":
             left_pads = oriented_pads.get("R270", [])
             top_pads = oriented_pads.get("R180", [])
             pad1 = left_pads[-1] if left_pads else None
             pad2 = top_pads[0] if top_pads else None
-        elif corner_orientation == "R90":  # Right edge
+        elif corner_orientation == "R90":
             top_pads = oriented_pads.get("R180", [])
             right_pads = oriented_pads.get("R90", [])
             pad1 = top_pads[-1] if top_pads else None
             pad2 = right_pads[0] if right_pads else None
-        elif corner_orientation == "R0":  # Bottom edge
+        elif corner_orientation == "R0":
             right_pads = oriented_pads.get("R90", [])
             bottom_pads = oriented_pads.get("R0", [])
             pad1 = right_pads[-1] if right_pads else None
             pad2 = bottom_pads[0] if bottom_pads else None
-        elif corner_orientation == "R270":  # Left edge
+        elif corner_orientation == "R270":
             bottom_pads = oriented_pads.get("R0", [])
             left_pads = oriented_pads.get("R270", [])
             pad1 = bottom_pads[-1] if bottom_pads else None
             pad2 = left_pads[0] if left_pads else None
     else:
-        # Start-corner mapping for counterclockwise indices:
-        # top->TR, right->BR, bottom->BL, left->TL
-        if corner_orientation == "R180":  # Top edge
+        if corner_orientation == "R180":
             top_pads = oriented_pads.get("R180", [])
             right_pads = oriented_pads.get("R90", [])
             pad1 = top_pads[0] if top_pads else None
             pad2 = right_pads[-1] if right_pads else None
-        elif corner_orientation == "R90":  # Right edge
+        elif corner_orientation == "R90":
             right_pads = oriented_pads.get("R90", [])
             bottom_pads = oriented_pads.get("R0", [])
             pad1 = right_pads[0] if right_pads else None
             pad2 = bottom_pads[-1] if bottom_pads else None
-        elif corner_orientation == "R0":  # Bottom edge
+        elif corner_orientation == "R0":
             bottom_pads = oriented_pads.get("R0", [])
             left_pads = oriented_pads.get("R270", [])
             pad1 = bottom_pads[0] if bottom_pads else None
             pad2 = left_pads[-1] if left_pads else None
-        elif corner_orientation == "R270":  # Left edge
+        elif corner_orientation == "R270":
             left_pads = oriented_pads.get("R270", [])
             top_pads = oriented_pads.get("R180", [])
             pad1 = left_pads[0] if left_pads else None
@@ -83,14 +81,129 @@ def get_corner_domain(oriented_pads, corner_orientation, placement_order: str = 
             return domain2
 
 
+def get_corner_adjacent_pad(oriented_pads, corner_orientation, placement_order: str = "clockwise"):
+    """Get the pad from the adjacent side that determines the corner's voltage domain.
+
+    Returns the pad dict for precise VoltageDomainHandler comparison.
+    """
+    pad1 = None
+    pad2 = None
+    is_clockwise = str(placement_order).lower() == "clockwise"
+
+    if is_clockwise:
+        if corner_orientation == "R180":
+            left_pads = oriented_pads.get("R270", [])
+            top_pads = oriented_pads.get("R180", [])
+            pad1 = left_pads[-1] if left_pads else None
+            pad2 = top_pads[0] if top_pads else None
+        elif corner_orientation == "R90":
+            top_pads = oriented_pads.get("R180", [])
+            right_pads = oriented_pads.get("R90", [])
+            pad1 = top_pads[-1] if top_pads else None
+            pad2 = right_pads[0] if right_pads else None
+        elif corner_orientation == "R0":
+            right_pads = oriented_pads.get("R90", [])
+            bottom_pads = oriented_pads.get("R0", [])
+            pad1 = right_pads[-1] if right_pads else None
+            pad2 = bottom_pads[0] if bottom_pads else None
+        elif corner_orientation == "R270":
+            bottom_pads = oriented_pads.get("R0", [])
+            left_pads = oriented_pads.get("R270", [])
+            pad1 = bottom_pads[-1] if bottom_pads else None
+            pad2 = left_pads[0] if left_pads else None
+    else:
+        if corner_orientation == "R180":
+            top_pads = oriented_pads.get("R180", [])
+            right_pads = oriented_pads.get("R90", [])
+            pad1 = top_pads[0] if top_pads else None
+            pad2 = right_pads[-1] if right_pads else None
+        elif corner_orientation == "R90":
+            right_pads = oriented_pads.get("R90", [])
+            bottom_pads = oriented_pads.get("R0", [])
+            pad1 = right_pads[0] if right_pads else None
+            pad2 = bottom_pads[-1] if bottom_pads else None
+        elif corner_orientation == "R0":
+            bottom_pads = oriented_pads.get("R0", [])
+            left_pads = oriented_pads.get("R270", [])
+            pad1 = bottom_pads[0] if bottom_pads else None
+            pad2 = left_pads[-1] if left_pads else None
+        elif corner_orientation == "R270":
+            left_pads = oriented_pads.get("R270", [])
+            top_pads = oriented_pads.get("R180", [])
+            pad1 = left_pads[0] if left_pads else None
+            pad2 = top_pads[-1] if top_pads else None
+
+    if not pad1 or not pad2:
+        return None
+
+    # Return the pad from the adjacent side (pad1 = previous side's last pad)
+    return pad1
+
+
+def get_end_corner_adjacent_pad(oriented_pads, corner_orientation, placement_order: str = "clockwise"):
+    """Get the pad from the next side that determines the end corner's voltage domain.
+
+    Returns the pad dict for precise VoltageDomainHandler comparison.
+    """
+    pad1 = None
+    pad2 = None
+    is_clockwise = str(placement_order).lower() == "clockwise"
+
+    if is_clockwise:
+        if corner_orientation == "R180":
+            top_pads = oriented_pads.get("R180", [])
+            right_pads = oriented_pads.get("R90", [])
+            pad1 = top_pads[-1] if top_pads else None
+            pad2 = right_pads[0] if right_pads else None
+        elif corner_orientation == "R90":
+            right_pads = oriented_pads.get("R90", [])
+            bottom_pads = oriented_pads.get("R0", [])
+            pad1 = right_pads[-1] if right_pads else None
+            pad2 = bottom_pads[0] if bottom_pads else None
+        elif corner_orientation == "R0":
+            bottom_pads = oriented_pads.get("R0", [])
+            left_pads = oriented_pads.get("R270", [])
+            pad1 = bottom_pads[-1] if bottom_pads else None
+            pad2 = left_pads[0] if left_pads else None
+        elif corner_orientation == "R270":
+            left_pads = oriented_pads.get("R270", [])
+            top_pads = oriented_pads.get("R180", [])
+            pad1 = left_pads[-1] if left_pads else None
+            pad2 = top_pads[0] if top_pads else None
+    else:
+        if corner_orientation == "R180":
+            top_pads = oriented_pads.get("R180", [])
+            left_pads = oriented_pads.get("R270", [])
+            pad1 = top_pads[-1] if top_pads else None
+            pad2 = left_pads[0] if left_pads else None
+        elif corner_orientation == "R90":
+            right_pads = oriented_pads.get("R90", [])
+            top_pads = oriented_pads.get("R180", [])
+            pad1 = right_pads[-1] if right_pads else None
+            pad2 = top_pads[0] if top_pads else None
+        elif corner_orientation == "R0":
+            bottom_pads = oriented_pads.get("R0", [])
+            right_pads = oriented_pads.get("R90", [])
+            pad1 = bottom_pads[-1] if bottom_pads else None
+            pad2 = right_pads[0] if right_pads else None
+        elif corner_orientation == "R270":
+            left_pads = oriented_pads.get("R270", [])
+            bottom_pads = oriented_pads.get("R0", [])
+            pad1 = left_pads[-1] if left_pads else None
+            pad2 = bottom_pads[0] if bottom_pads else None
+
+    # Return the pad from the next side (pad2)
+    return pad2
+
+
 class AutoFillerGeneratorT180:
     """Auto Filler Component Generator for T180 process node"""
-    
+
     def __init__(self, config: dict):
         self.config = config
         self.position_calculator = PositionCalculator(config)
         self.classifier = DeviceClassifier(process_node="T180")
-        
+
         # Get corner filler device from config
         process_config = get_process_node_config()
         device_masters = process_config.get("device_masters", {})
@@ -99,23 +212,21 @@ class AutoFillerGeneratorT180:
         self.default_filler = filler_components.get("digital_10", "PFILLER10")
 
     def auto_insert_default_fillers(self, layout_components: List[dict]) -> List[dict]:
-        """Auto-insert fillers using relative positions only (no absolute coordinate calculation)."""
+        """Auto-insert fillers using relative positions only (no absolute coordinate calculation).
+
+        Supports multi-voltage domain: inserts BLANK between different voltage domains.
+        """
         # Check if filler components are already included
         existing_fillers = [comp for comp in layout_components if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device", ""), "T180")]
-        
+
         if existing_fillers:
-            print(f"🔍 Detected filler components in intent graph: {len(existing_fillers)} fillers")
-            print("📝 Skipping auto-filler generation, using components defined in intent graph")
+            print(f"Detected filler components in intent graph: {len(existing_fillers)} fillers")
+            print("Skipping auto-filler generation, using components defined in intent graph")
             return layout_components
-        
+
         pad_width_default = self.config.get("pad_width", 80)
         pad_height_default = self.config.get("pad_height", 120)
         placement_order = str(self.config.get("placement_order", "counterclockwise")).lower()
-
-        def normalize_domain(value: str) -> str:
-            if value in (None, "null", ""):
-                return "analog"
-            return value
 
         def get_component_width(component: dict) -> float:
             if component.get("type") == "corner":
@@ -217,13 +328,8 @@ class AutoFillerGeneratorT180:
             if not side:
                 continue
 
-            corner_domain = normalize_domain(get_corner_domain(oriented_pads, orientation, placement_order))
-            first_pad = pad_list[0]
-            first_domain = normalize_domain(first_pad.get("domain"))
-
             # Create side components list to manage order and re-indexing
             side_components = []
-
 
             # Helper for creating fillers/blanks
             def create_filler(name_suffix, device_type, rec_type="filler"):
@@ -231,15 +337,19 @@ class AutoFillerGeneratorT180:
                     name=f"{rec_type}_{side}_{name_suffix}",
                     device=device_type,
                     record_type=rec_type,
-                    position="", # Will be set during re-indexing
+                    position="",
                 )
 
             # Start filler/blank (before first pad)
-            if corner_domain == first_domain:
-                start_filler = create_filler("start", self.corner_filler, "filler")
-            else:
+            # Compare the adjacent side's pad with the first pad using VoltageDomainHandler
+            first_pad = pad_list[0]
+            corner_adj_pad = get_corner_adjacent_pad(oriented_pads, orientation, placement_order)
+
+            if corner_adj_pad is not None and not VoltageDomainHandler.is_same_voltage_domain(corner_adj_pad, first_pad):
                 start_filler = create_filler("start", "BLANK", "blank")
-            
+            else:
+                start_filler = create_filler("start", self.corner_filler, "filler")
+
             fillers.append(start_filler)
             side_components.append(start_filler)
 
@@ -247,31 +357,34 @@ class AutoFillerGeneratorT180:
             for idx in range(len(pad_list)):
                 curr_pad = pad_list[idx]
                 side_components.append(curr_pad)
-                
+
                 # Check for intermediate filler if not the last pad
                 if idx < len(pad_list) - 1:
                     next_pad = pad_list[idx + 1]
-                    curr_domain = normalize_domain(curr_pad.get("domain"))
-                    next_domain = normalize_domain(next_pad.get("domain"))
-                    
-                    if curr_domain == next_domain:
+
+                    # Use VoltageDomainHandler for multi-domain detection
+                    if VoltageDomainHandler.is_same_voltage_domain(curr_pad, next_pad):
                         mid_filler = create_filler(f"{idx}_mid", self.default_filler, "filler")
                     else:
-                         mid_filler = create_filler(f"{idx}_mid", "BLANK", "blank")
-                        
+                        mid_filler = create_filler(f"{idx}_mid", "BLANK", "blank")
+
                     fillers.append(mid_filler)
                     side_components.append(mid_filler)
 
-            # End filler (after last pad)
-            # if corner_domain == end_domain:
-            #     end_filler = create_filler("end", self.corner_filler, "filler")
-            # else:
-            #     end_filler = create_filler("end", "BLANK", "blank")
-            end_filler = create_filler("end", self.corner_filler, "filler")
+            # End filler/blank (after last pad)
+            # Compare the last pad with the next side's first pad using VoltageDomainHandler
+            last_pad = pad_list[-1]
+            end_adj_pad = get_end_corner_adjacent_pad(oriented_pads, orientation, placement_order)
+
+            if end_adj_pad is not None and not VoltageDomainHandler.is_same_voltage_domain(last_pad, end_adj_pad):
+                end_filler = create_filler("end", "BLANK", "blank")
+            else:
+                end_filler = create_filler("end", self.corner_filler, "filler")
+
             fillers.append(end_filler)
             side_components.append(end_filler)
 
-            # Fill to target side span using chip dimensions (works for relative-only inputs).
+            # Fill to target side span using chip dimensions
             target_span = target_span_for_side(side)
             if target_span is not None:
                 current_span = sum(get_component_width(comp) for comp in side_components)
@@ -292,9 +405,7 @@ class AutoFillerGeneratorT180:
 
             # Re-index all components in the side sequence
             for i, component in enumerate(side_components):
-                # Update position to be sequential: side_0, side_1, side_2...
                 new_pos = f"{side}_{i}"
-                component["position"] = new_pos 
+                component["position"] = new_pos
 
         return layout_components + fillers
-

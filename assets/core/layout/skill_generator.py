@@ -177,7 +177,7 @@ class SkillGeneratorT180:
         # Get all digital pads (outer ring only)
         all_digital_pads = []
         for pad in outer_pads:
-            if DeviceClassifier.is_digital_device(pad["device"]) and pad.get("domain") == "digital":
+            if DeviceClassifier.is_digital_device(pad["device"]) and VoltageDomainHandler.get_voltage_domain(pad) == "digital":
                 all_digital_pads.append({
                     "position": pad["position"],
                     "orientation": pad["orientation"],
@@ -223,7 +223,7 @@ class SkillGeneratorT180:
         pad_height = ring_config.get("pad_height", 120)
         for pad in all_digital_pads:
             device_type = pad.get("device", "")
-            if device_type in ["PVDD1CDG", "PVSS1CDG"] and pad.get("domain") == "digital":  # Digital power pads
+            if device_type in ["PVDD1CDG", "PVSS1CDG"] and VoltageDomainHandler.get_voltage_domain(pad) == "digital":  # Digital power pads
                 x, y = pad["position"]
                 orient = pad["orientation"]
                 # the wire offset from the pad edge
