@@ -392,7 +392,6 @@ class SkillGeneratorT180:
                     core_just, core_orient = "centerLeft", "R0"
                 
                 core_label = self._format_core_label(name)
-                skill_commands.append(f'dbCreateLabel(cv list("M2" "pin") {core_pos} "{core_label}" "{core_just}" "{core_orient}" "roman" 2)')
 
         return skill_commands
 

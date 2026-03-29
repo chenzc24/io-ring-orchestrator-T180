@@ -42,7 +42,7 @@
       "config_layer": "METAL1",
       "secondary_layer": "METAL2",
       "pin_layer": "METAL6",
-      "core_label_layer": "M2"
+      "core_label_layer": "METAL2"
     },
     "wire_widths": {
       "config_width": 1,

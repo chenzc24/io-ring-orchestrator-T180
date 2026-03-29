@@ -283,7 +283,9 @@ These rules apply to every step of the process and cannot be overridden.
 - **Corner Insertion**: You MUST insert `PCORNER` instances at the exact transition points between sides (Top/Right/Bottom/Left) during placement. Do not append them at the end.
 - **Domain Isolation**: Analog and Digital domains are strictly isolated. They never share pin configurations or connections.
 - **Voltage Domains**: Priority 1 (Naming): If signal name matches conventions (e.g., `VIOH*`, `GIOH*`, `VPST`, `GPST`), use Voltage Domain devices (`PVDD2CDG`/`PVSS2CDG`). Priority 2 (Explicit): If user mentions "voltage domain". Otherwise, default to Regular Power/Ground (`PVDD1CDG`/`PVSS1CDG`).
+- **Multi-Voltage Domain Support**: T180 supports multiple voltage domains within both analog and digital domains. Different VDDPST/VSSPST label pairs define different voltage domains. Each voltage domain block MUST have its own provider pair (PVDD2CDG + PVSS2CDG) and consumer pair (PVDD1CDG + PVSS1CDG). A domain can have multiple PVSS2CDG (same signal name) but only ONE PVDD2CDG.
 - **Analog Ground**: Pure analog pads' VSS pins must connect to the analog common ground (default `GIOLA`) unless specific rules override.
+- **Voltage Domain Continuity**: Signals in the same voltage domain should form contiguous blocks. Ring structure continuity applies (start and end of signal list are adjacent).
 
 ### Forbidden Actions
 - NO skipping steps in the workflow.
@@ -330,6 +332,10 @@ These rules apply to every step of the process and cannot be overridden.
 - [ ] Are Voltage Domain devices used ONLY when requested or name-matched?
 - [ ] Do `pin_connection` labels match the Pin Configuration Matrix exactly?
 - [ ] Do pure analog pads connect VSS to `GIOLA` (or equivalent)?
+- [ ] Are BLANK components inserted between different voltage domains (different VDDPST/VSSPST labels)?
+- [ ] Does each voltage domain block have its own provider pair (PVDD2CDG + PVSS2CDG) and consumer pair (PVDD1CDG + PVSS1CDG)?
+- [ ] Does each voltage domain block have exactly one PVDD2CDG (multiple PVSS2CDG with same name allowed)?
+- [ ] Are voltage domain continuity rules satisfied (contiguous blocks, ring wrap)?
 
 ## Troubleshooting
 
@@ -338,6 +344,8 @@ These rules apply to every step of the process and cannot be overridden.
 | Scripts not found | Use absolute path; verify with `ls $SCRIPTS_PATH/validate_intent.py` |
 | Virtuoso not connected | Start Virtuoso; do NOT retry SKILL execution |
 | Domain isolation fails | Re-classify signals using ring-wrap continuity, ensure analog/digital domains are separated |
+| Voltage domain continuity fails | Check VDDPST/VSSPST labels — pads with different labels belong to different voltage domains; ensure BLANK is inserted between them and each domain block has its own provider pair |
+| Missing BLANK between domains | Adjacent pads with different VDDPST/VSSPST labels need BLANK separator; check auto_filler logic |
 | Validation failure | Enter Step 5 repair loop: parse error -> query matching rule in references -> apply targeted JSON fix -> re-validate |
 | DRC failure | Enter Step 10 repair loop: parse DRC report -> query matching reference rules -> fix intent JSON -> regenerate and rerun DRC |
 | LVS failure | Enter Step 11 repair loop: parse LVS mismatch -> return to Step 3 to check/fix intent JSON -> rerun Step 3-11 |
