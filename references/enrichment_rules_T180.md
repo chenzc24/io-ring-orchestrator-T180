@@ -49,15 +49,16 @@ Input precedence:
 
 T180 supports multiple voltage domains within both analog and digital domains. Key concepts:
 
-1. **Voltage Domain Identification**: Each unique VDDPST/VSSPST label pair defines a specific voltage domain. Different VDDPST/VSSPST labels mean different voltage domains, even within the same broad domain (analog or digital).
-2. **Voltage Domain Continuity**: Signals in the same voltage domain should form contiguous blocks. Ring structure continuity applies.
-3. **Provider & Consumer Pairs Per Voltage Domain**: Each voltage domain block MUST have:
+1. **Domain and voltage domain**: An IO Ring has two broad domains (analog and digital). Within each broad domain, there can be multiple voltage domains defined by different VDDPST/VSSPST label pairs (provider pairs).
+2. **Voltage Domain Identification**: Each unique VDDPST/VSSPST label pair defines a specific voltage domain. Different VDDPST/VSSPST labels mean different voltage domains, even within the same broad domain (analog or digital).
+3. **Voltage Domain Continuity**: Signals in the same voltage domain should form contiguous blocks. Ring structure continuity applies.
+4. **Provider & Consumer Pairs Per Voltage Domain**: Each voltage domain block MUST have:
    - A **provider pair**: `PVDD2CDG` (VDDPST provider) + `PVSS2CDG` (VSSPST provider) — these provide the VDDPST/VSSPST signals for the domain.
    - A **consumer pair**: `PVDD1CDG` (VDD consumer) + `PVSS1CDG` (VSS consumer) — these are the regular VDD/VSS connections in the domain.
    - **Multiple `PVSS2CDG` instances allowed**: A voltage domain can have multiple `PVSS2CDG` pads with the **same signal name** (multiple VSSPST providers sharing one ground net).
    - **Only ONE `PVDD2CDG`**: A voltage domain MUST have exactly one `PVDD2CDG` (only one VDDPST provider). Multiple `PVDD2CDG` with different signal names in the same domain is **FORBIDDEN**.
    - Cannot share providers across voltage domains.
-4. **Pin Configuration is Voltage-Domain-Based for VDDPST/VSSPST**:
+5. **Pin Configuration is Voltage-Domain-Based for VDDPST/VSSPST**:
    - **VDDPST/VSSPST pins** (voltage-domain-based): MUST connect to the corresponding provider signal names (`PVDD2CDG`'s name for VDDPST, `PVSS2CDG`'s name for VSSPST) in the **same** voltage domain. This is the core voltage-domain routing rule.
    - **VDD/VSS pins** (per voltage domain block): Connect to the consumer pair in the same voltage domain block. For power/ground consumer pads (PVDD1CDG/PVSS1CDG), VDD/VSS connects to **Self Name**. For other pads (providers, IO), VDD/VSS connects to the consumer pair signal names (ANA_CSM_PWR/ANA_CSM_GND or DIG_CSM_PWR/DIG_CSM_GND) in the same voltage domain block.
    - **AVDD/AVSS pins** (signal pins, NOT voltage-domain-based): Connect to **Self Name** (the pad's own signal name).
@@ -72,11 +73,11 @@ T180 supports multiple voltage domains within both analog and digital domains. K
 The priority for determining device type is:
 1. **User Explicit Instruction** (e.g., "Signal X is Analog IO", "Domain is Analog"). **This overrides EVERYTHING.**
 2. **Mandatory Dictionary** (Section 1.2 below).
-3. **Naming Heuristics** (General Rule: if a device belongs to the analog domain, "V" in name implies `PVDD1ANA` and "G" in name implies `PVSS1ANA`).
+3. **Naming Heuristics** (General Rule: if a device belongs to the analog domain, "V" in name implies `PVDD1ANA` and "G" in name implies `PVSS1ANA`.).
 
 ### 1.2 Mandatory Signal Classification Dictionary
 
-If the user does NOT explicitly specify the type, check this dictionary. If a signal name appears here, it MUST be classified as the specified type.
+This dictionary serves as a **reference default** only. **User-specified classification always takes priority.** If the user explicitly classifies a signal as a certain type (e.g., calls it analog IO), it MUST be classified as that type — even if the signal name appears in a different category below. Only use this dictionary when the user does NOT specify the type.
 
 **Analog IO (Force Type: `PVDD1ANA` or `PVSS1ANA`):**
 
@@ -86,40 +87,63 @@ If the user does NOT explicitly specify the type, check this dictionary. If a si
 
 `FGCAL`, `DITM`, `CKTM`, `RSTM`, `DOTM`, `CKAZ`, `DOFG`, `CLKO`, `CONV`, `DA*` (e.g., DA0-DA14)
 
-### 1.3 Domain Assignment Rules
+**Example:**
+- `FGCAL` is listed under Digital IO above. However, if the user explicitly says "FGCAL is analog IO", then `FGCAL` MUST be classified as analog IO (`PVDD1ANA` or `PVSS1ANA`) — the user's specification overrides the dictionary.
+- Conversely, `MCLK` is listed under Analog IO above. If the user explicitly says "MCLK is digital IO", then `MCLK` MUST be classified as digital IO (`PDDW0412SCDG`).
+- Only when the user does NOT specify the type (e.g., just says "place FGCAL") should the dictionary default be used.
 
+### 1.3 Basic Domain(Analog/Digital) Assignment Rules
+
+**Critical - If user explicitly specifies domain → use user specification**
+Else, determine domain based on these rules:
 - Signals in the Analog IO list → `domain: "analog"`
 - Signals in the Digital IO list → `domain: "digital"`
 - Signals with names matching power/ground patterns (e.g., `V*`, `G*`, `VIOLA`, `GIOLA`, `VIOLD`, `GIOLD`) → determine domain from context:
   - If surrounded by analog signals → `domain: "analog"`
   - If surrounded by digital signals → `domain: "digital"`
-  - If user explicitly specifies domain → use user specification
 
-**Domain Isolation**: Analog and Digital domains are strictly isolated. They never share pin configurations or connections.
+**Domain Isolation**: Analog and Digital domains never share pin configurations or connections.
 
 ### 1.4 Voltage Domain Continuity & Multi-Domain Assignment
 
 **CRITICAL - Voltage Domain Continuity in Signal Recognition**:
-- **Analog signals**: Analog voltage domains should form contiguous blocks. If a voltage domain has multiple non-contiguous blocks, each block MUST have its own complete provider pair.
-- **Digital signals**: Digital voltage domains should form contiguous blocks. Ring structure continuity applies.
+- **Analog signals**: Analog voltage domains should form contiguous blocks, which means that they are all connected with provider signals' VDDPST/VSSPST within that voltage domain.
 - **Ring structure continuity applies** (see "Universal Ring Structure Principle" above).
 
-**Voltage Domain Identification (T180-specific)**:
-- T180 uses VDDPST/VSSPST pin labels to identify specific voltage domains.
-- Each unique VDDPST label + VSSPST label pair defines a specific voltage domain.
-- **Key difference from T28**: T180 cannot distinguish analog/digital from pins. Domain type ("analog"/"digital") comes from the `domain` field, while specific voltage domain identity comes from VDDPST/VSSPST labels.
+**Provider & Consumer Pairs Per Voltage Domain**: Each voltage domain block MUST have:
+- A **provider pair**: `PVDD2CDG` (VDDPST provider) + `PVSS2CDG` (VSSPST provider) — these provide the VDDPST/VSSPST signals for the domain.
+- A **consumer pair**: `PVDD1CDG` (VDD consumer) + `PVSS1CDG` (VSS consumer) — these are the regular VDD/VSS connections in the domain.
+- **Multiple `PVSS2CDG` instances allowed**: A voltage domain can have multiple `PVSS2CDG` pads with the **same signal name** (multiple VSSPST providers sharing one ground net).
+- **Only ONE `PVDD2CDG`**: A voltage domain MUST have exactly one `PVDD2CDG` (only one VDDPST provider). Multiple `PVDD2CDG` with different signal names in the same domain is **FORBIDDEN**.
+- Cannot share providers across voltage domains.
 
-**Multi-Domain within Analog**:
-- Different analog voltage domains exist when signals in the analog section connect to different VDDPST/VSSPST label pairs.
-- Example: Analog domain 1 uses VDDPST=VIOHA, VSSPST=GIOHA; Analog domain 2 uses VDDPST=VIOHB, VSSPST=GIOHB. These are two different analog voltage domains.
-
-**Multi-Domain within Digital**:
-- Different digital voltage domains exist when signals in the digital section connect to different VDDPST/VSSPST label pairs.
-- Example: Digital domain 1 uses VDDPST=VPST, VSSPST=GPST; Digital domain 2 uses VDDPST=VPST2, VSSPST=GPST2.
+**IO voltage Domain Assignment**:
+- All IO signals (analog and digital) must belong to a voltage domain. Each voltage domain is defined by its unique VDDPST/VSSPST provider pair.
 
 **User Specification Priority**:
 - **If user explicitly specifies voltage domains**: MUST strictly follow user's specification. User defines which signals belong to which voltage domain and which signals are providers.
 - **If user does NOT specify**: Analyze signal names and create voltage domains automatically. Every signal must belong to a voltage domain. Each voltage domain must have at least one provider pair.
+
+**Cross-Domain Provider Independence**:
+- Each voltage domain identifies its provider signals independently within its own range.
+- Same signal name in different voltage domains: each domain selects its own first occurrence as provider.
+
+**What you should prepare for step 2**:
+- voltage domain assignment for each signal (which voltage domain block it belongs to)
+- Example:
+`User Prompt:` 
+Signal list:
+12 pads per side. Single ring layout. Order: clockwise through right side, bottom side, left side, top side.
+MCLK  VDCK GDCK VPID VNID IPPI IPNI VNSC AVSF AGSF CKAZ CKTM CONV RSTM DOFG CLKO DOTM GIOHD DA14 DA13 DA12 DA11 DA10 DA9 DA8 DA7 DA6 DA5 DA4 DA3 DA2 DA1 DA0 VIOHD VIOLD GIOLD GIOHD VDDIB VDID VSIS VSSIB DGSC VDCKB CDCKB VIOHA GIOHA GIOLA VIOLA 
+Voltage domain requirements:
+  - Digital signals use digital domain voltage domain (VIOLD/GIOLD/VIOHD/GIOHD)
+  - from VDDIB to CDCKB use VDID and VSIS as voltage domain（VDDIB/VSSIB consumer）
+  - from VIOHA to AGSF use VIOHA and GIOHA as voltage domain
+`Voltage Domain Assignment Result:`
+- Domain 1 (Analog): VDDIB, VDID, VSIS, VSSIB, DGSC, VDCKB, CDCKB (Voltage Domain: VDDPST provider `VDID`, VSSPST provider `VSIS`. Consumers: `VDDIB`/`VSSIB`)
+- Domain 2 (Analog): VIOHA, GIOHA, GIOLA, VIOLA,MCLK, VDCK, GDCK, VPID, VNID, IPPI, IPNI, VNSC, AVSF, AGSF (Voltage Domain: VDDPST provider `VIOHA`, VSSPST provider `GIOHA`.consumers: `VIOLA`/`GIOLA`)
+- Domain 3 (Digital): CKAZ, CKTM, CONV, RSTM, DOFG, CLKO, DOTM, DA14-DA0, VIOHD, VIOLD, GIOLD, GIOHD (Voltage Domain: VDDPST provider `VIOHD`, VSSPST provider `GIOHD`. Consumers: `VIOLD`/`GIOLD`)
+---
 
 ### 1.5 Voltage Domain Provider Selection
 
@@ -133,26 +157,6 @@ If the user does NOT explicitly specify the type, check this dictionary. If a si
 - **Voltage Domain Consumers**:
   - `PVDD1CDG` (VDD consumer): Connects VDD to its own signal name, VDDPST to the provider's label.
   - `PVSS1CDG` (VSS consumer): Connects VSS to its own signal name, VSSPST to the provider's label.
-
-**PVDD2CDG Selection Rules (Exactly ONE per domain block)**:
-- **Default behavior**: Select the **first VDD-type signal** within each voltage domain's range as the single `PVDD2CDG` provider. All other VDD-type signals in that domain become consumers (`PVDD1CDG`).
-- **FORBIDDEN**: Multiple `PVDD2CDG` with different signal names in the same voltage domain block.
-- **User override**: If user explicitly specifies which signal is the VDDPST provider, follow user specification.
-
-**PVSS2CDG Selection Rules (Multiple allowed, same signal name)**:
-- **Default behavior**: Select the **first VSS-type signal** within each voltage domain's range as `PVSS2CDG` provider. Additional VSS-type signals with the **same signal name** in that domain also become `PVSS2CDG` providers.
-- **VSS-type signals with DIFFERENT names** in the same domain: Only the provider's signal name can use `PVSS2CDG`. Other VSS-type signals with different names become consumers (`PVSS1CDG`).
-- **User override**: If user explicitly specifies which signals are VSSPST providers, follow user specification.
-
-**Consumer Pair Rules**:
-- `PVDD1CDG`: VDD-type signals that are NOT the `PVDD2CDG` provider. Connects VDD to its own signal name, VDDPST to the provider's label.
-- `PVSS1CDG`: VSS-type signals with different names from the `PVSS2CDG` provider. Connects VSS to its own signal name, VSSPST to the provider's label.
-
-**Cross-Domain Provider Independence**:
-- Each voltage domain identifies its provider signals independently within its own range.
-- Same signal name in different voltage domains: each domain selects its own first occurrence as provider.
-
----
 
 ## Step 2: Device Selection
 
@@ -180,7 +184,7 @@ If the user does NOT explicitly specify the type, check this dictionary. If a si
 
 | Signal Category | Condition | Device | Naming Convention Examples |
 |:---|:---|:---|:---|
-| **Analog IO** | Priority 1: User explicitly says "Analog IO". Priority 2: Name in Mandatory Dictionary. | `PVDD1ANA` (if "V" in name) / `PVSS1ANA` (if "G" in name) | MCLK, CDCKB, VDCKB, VDCK, AVSC, AGSC, etc. |
+| **Analog IO** | Priority 1: User explicitly says "Analog IO". Priority 2: Name in Mandatory Dictionary. | Priority 1: User specifies. Priority 2:`PVDD1ANA` (if "V" in name) / `PVSS1ANA` (if "G" in name) | MCLK, CDCKB, VDCKB, VDCK, AVSC, AGSC, etc. |
 | **Analog VD Power** | Priority 1: User says "Voltage Domain". Priority 2: Name matches `VIOHA`/`VDID`. | `PVDD2CDG` | VIOHA, VDID etc. |
 | **Analog VD Ground** | Priority 1: User says "Voltage Domain". Priority 2: Name matches `GIOHA`/`GDID`. | `PVSS2CDG` | GIOHA, GDID etc. |
 | **Analog Power** | Analog Domain Consumer (Regular) | `PVDD1CDG` | VIOLA, VDIB etc. |
@@ -204,7 +208,7 @@ If the user does NOT explicitly specify the type, check this dictionary. If a si
 
 ---
 
-## Step 3: Pin Configuration
+## Step 3: Pin Configuration (Voltage-Domain-Based)
 
 **CRITICAL**: Configure `pin_connection` exactly according to these matrices. **Strictly isolate domains.**
 
@@ -214,8 +218,6 @@ If the user does NOT explicitly specify the type, check this dictionary. If a si
 - **VDDPST/VSSPST**: MUST connect to the voltage domain provider signal names in the **same** voltage domain. This is the ONLY voltage-domain-routed pin pair.
   - Consumer pads: VDDPST → provider's signal name (PVDD2CDG's name); VSSPST → provider's signal name (PVSS2CDG's name).
   - Provider pads: VDDPST/VSSPST → **Self Name** (self-referencing, providing the signal to the domain).
-
-**Non-voltage-domain-based pin connections (per voltage domain block)**:
 - **VDD/VSS**: Connect to the consumer pair (PVDD1CDG/PVSS1CDG) signal names in the **same** voltage domain block. This is also resolved per voltage domain — each voltage domain block has its own consumer pair.
   - Power/ground consumer pads (PVDD1CDG/PVSS1CDG): VDD/VSS → **Self Name**.
   - Provider pads (PVDD2CDG/PVSS2CDG): VDD → the PVDD1CDG consumer's name in this voltage domain block; VSS → the PVSS1CDG consumer's name in this voltage domain block.
@@ -395,13 +397,6 @@ Before saving the final JSON, verify these gates pass:
 ### Position-Identity Gate
 - Every instance has a unique position.
 - Position format matches the expected pattern (`side_index` or corner positions).
-
-### Pin-Family Gate
-- Analog devices use analog pin labels only (ANA_CSM_PWR, ANA_CSM_GND, ANA_VD_PWR, ANA_VD_GND).
-- Digital devices use digital pin labels only (DIG_CSM_PWR, DIG_CSM_GND, DIG_VD_PWR, DIG_VD_GND).
-- Domains never share pin label sources.
-- **Within the same voltage domain block**, all pads must connect VDDPST to the same provider label and VSSPST to the same provider label.
-- **Within the same voltage domain block**, all pads must connect VDD to the same consumer power label and VSS to the same consumer ground label.
 
 ### VSS-Consistency Gate
 - All pads within the **same voltage domain block** must connect VSS to the same consumer ground signal (ANA_CSM_GND for analog, DIG_CSM_GND for digital).

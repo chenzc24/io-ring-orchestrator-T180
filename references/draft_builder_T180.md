@@ -176,14 +176,6 @@ Example (top_count=3, left_count=3, bottom_count=3, right_count=3):
 - right (3): `FGCAL, DITM, CKTM` → `right_0, right_1, right_2`
 - top (3): `DOTM, DOFG, CLKO` → `top_0, top_1, top_2`
 
-### Corner Identification
-
-Corner positions are fixed regardless of placement order:
-- `top_left`: Between Left-Last and Top-First
-- `top_right`: Between Top-Last and Right-First
-- `bottom_right`: Between Right-Last and Bottom-First
-- `bottom_left`: Between Bottom-Last and Left-First
-
 ## Duplicate Signal Rule
 
 When duplicate signals (same signal name appearing multiple times) are encountered:

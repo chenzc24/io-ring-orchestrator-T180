@@ -80,7 +80,6 @@ Rules:
   - topology (Single/Double ring)
   - counter-clockwise outer-ring signal order
   - pad count description
-  - inner-pad insertion directives (if Double Ring)
 3. Treat extracted structure as Step 2 input. If user text and image conflict, prefer explicit user text constraints and keep unresolved conflicts explicit in the report.
 4. Keep extraction/output conventions unchanged:
   - right side is read bottom-to-top
