@@ -185,7 +185,7 @@ def main():
 
     # Check file exists
     if not config_path.exists():
-        print(f"❌ Error: File not found: {config_file_path}")
+        print(f"[ERROR] Error: File not found: {config_file_path}")
         sys.exit(2)
 
     # Load JSON
@@ -193,11 +193,11 @@ def main():
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
     except json.JSONDecodeError as e:
-        print(f"❌ Error: Invalid JSON format")
+        print(f"[ERROR] Error: Invalid JSON format")
         print(f"   {e}")
         sys.exit(2)
     except Exception as e:
-        print(f"❌ Error: Failed to load file")
+        print(f"[ERROR] Error: Failed to load file")
         print(f"   {e}")
         sys.exit(2)
 
@@ -205,11 +205,11 @@ def main():
     is_valid, message = validate_intent_graph(config)
 
     if is_valid:
-        print(f"✅ Intent graph validation passed!")
+        print(f"[OK] Intent graph validation passed!")
         print(f"   {message}")
         sys.exit(0)
     else:
-        print(f"❌ Intent graph validation failed:")
+        print(f"[ERROR] Intent graph validation failed:")
         print(f"   {message}")
         sys.exit(1)
 

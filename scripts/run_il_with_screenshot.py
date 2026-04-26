@@ -26,11 +26,6 @@ from time import sleep
 skill_dir = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(skill_dir))
 
-# T180 shares bridge_utils / external_scripts / skill_code with T28
-_t28_skill_dir = skill_dir.parent / "io-ring-orchestrator-T28"
-if _t28_skill_dir.is_dir() and str(_t28_skill_dir) not in sys.path:
-    sys.path.insert(1, str(_t28_skill_dir))
-
 
 def _resolve_output_root() -> Path:
     """Resolve unified output root for generated reports/artifacts.
@@ -59,20 +54,26 @@ def run_il_file(il_file_path: str, lib: str, cell: str, view: str = "layout", sa
         open_cell_view_by_type,
         ge_open_window,
         ui_redraw,
-        rb_exec,
+        load_skill_file,
         save_current_cellview,
+        rb_exec,
     )
 
-    ok = open_cell_view_by_type(lib, cell, view=view, view_type=None, mode="w", timeout=30)
+    # Ensure library exists before opening cellview
+    lib_check = rb_exec(f'if(!ddGetObj("{lib}") dbCreateLib("{lib}" "tpd018bcdnv5"))', timeout=60)
+
+    ok = open_cell_view_by_type(lib, cell, view=view, view_type=None, mode="w", timeout=60)
     if not ok:
         return f"Error: Failed to open cellView {lib}/{cell}/{view}"
 
-    window_ok = ge_open_window(lib, cell, view=view, view_type=None, mode="a", timeout=30)
+    window_ok = ge_open_window(lib, cell, view=view, view_type=None, mode="a", timeout=60)
     if not window_ok:
         return f"Error: Failed to open window for {lib}/{cell}/{view}"
 
     ui_redraw(timeout=10)
     sleep(0.5)
+
+    from assets.utils.bridge_utils import rb_exec
     rb_exec("cv = geGetEditCellView()", timeout=10)
 
     skill_path = Path(il_file_path)
@@ -86,18 +87,14 @@ def run_il_file(il_file_path: str, lib: str, cell: str, view: str = "layout", sa
     if skill_path.suffix.lower() not in [".il", ".skill"]:
         return f"Error: File {skill_path} is not a valid il/skill file"
 
-    escaped_path = str(skill_path.resolve()).replace("\\", "\\\\").replace('"', '\\"')
-    load_result = rb_exec(f'load("{escaped_path}")', timeout=60)
-    if load_result and load_result.strip().lower() in {"t", "t\n", ""}:
+    load_result = load_skill_file(str(skill_path.resolve()), timeout=120)
+    if load_result:
         if save:
             if save_current_cellview(timeout=30):
                 return f"il file {skill_path.name} executed and saved successfully"
             return f"il file {skill_path.name} executed successfully but save failed"
         return f"il file {skill_path.name} executed successfully"
 
-    safe_error = str(load_result).replace("\n", " ").replace("\r", " ").strip() if load_result else ""
-    if safe_error and safe_error.lower() not in {"nil", "none"}:
-        return f"il file {skill_path.name} execution failed\n[Error Details]: {safe_error}"
     return f"il file {skill_path.name} execution failed"
 
 
@@ -197,10 +194,8 @@ def main():
             stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             save_path = str((save_dir / f"virtuoso_{Path(il_file_path).stem}_{stamp}.png").resolve())
 
-        # Look for screenshot.il in T28 skill_code (shared resource)
+        # Look for screenshot.il in T180 skill_code
         screenshot_script = str((skill_dir / "assets" / "skill_code" / "screenshot.il").resolve(strict=False))
-        if not Path(screenshot_script).exists():
-            screenshot_script = str((_t28_skill_dir / "assets" / "skill_code" / "screenshot.il").resolve(strict=False))
 
         if load_script_and_take_screenshot(screenshot_script, save_path, timeout=20):
             result_dict["status"] = "success"

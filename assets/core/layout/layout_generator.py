@@ -246,7 +246,7 @@ class LayoutGeneratorT180:
             # Use device field
             device = instance.get("device", "")
             if not device:
-                raise ValueError(f"❌ Error: Instance '{name}' must have 'device' field")
+                raise ValueError(f"[ERROR] Error: Instance '{name}' must have 'device' field")
             
             component_type = self._get_component_type(instance)
             
@@ -305,7 +305,7 @@ class LayoutGeneratorT180:
         # Check corners
         has_corners = any(comp.get("type") == "corner" for comp in converted_components)
         if not has_corners:
-            raise ValueError("❌ Error: Corner components are missing in the intent graph!")
+            raise ValueError("[ERROR] Error: Corner components are missing in the intent graph!")
 
         return converted_components
 
@@ -317,7 +317,7 @@ def generate_layout_skill_from_components(
     output_file: str,
 ):
     """Generate 180nm layout SKILL script from finalized components only."""
-    print("🚀 Starting Layout Skill script generation...")
+    print("[>>] Starting Layout Skill script generation...")
 
     def ensure_unique_nonfunctional_names(components: List[dict]) -> List[dict]:
         used_names = set()
@@ -380,7 +380,7 @@ def generate_layout_skill_from_components(
 
     skill_commands = []
     
-    skill_commands.append("cv = geGetWindowCellView()")
+    skill_commands.append("cv = geGetEditCellView()")
     # File header
     skill_commands.append("; Generated Layout Script for T180")
     skill_commands.append("")
@@ -491,17 +491,17 @@ def generate_layout_skill_from_components(
         os.makedirs(output_dir, exist_ok=True)
         # Use component-based visualization to support blank types
         visualize_layout_from_components_T180(all_components_with_fillers, visualization_path, ring_config)
-        print(f"📊 Visualization generated: {visualization_path}")
+        print(f"[STATS] Visualization generated: {visualization_path}")
     except Exception as e:
-        print(f"⚠️  Visualization generation failed: {e}")
+        print(f"[WARN]  Visualization generation failed: {e}")
     
     # Calculate chip size (matching merge_source)
     chip_width, chip_height = ring_config.get("chip_width", 2250), ring_config.get("chip_height", 2160)
     total_components = len(all_components_with_fillers)
 
-    print(f"📐 Chip size: {chip_width} x {chip_height}")
-    print(f"📊 Total components: {total_components}")
-    print(f"✅ Layout Skill script generated: {output_file}")
+    print(f"[DIM] Chip size: {chip_width} x {chip_height}")
+    print(f"[STATS] Total components: {total_components}")
+    print(f"[OK] Layout Skill script generated: {output_file}")
     
     return output_file
 

@@ -24,11 +24,6 @@ from pathlib import Path
 skill_dir = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(skill_dir))
 
-# T180 shares bridge_utils / external_scripts with T28
-_t28_skill_dir = skill_dir.parent / "io-ring-orchestrator-T28"
-if _t28_skill_dir.is_dir() and str(_t28_skill_dir) not in sys.path:
-    sys.path.insert(1, str(_t28_skill_dir))
-
 
 def _resolve_output_root() -> Path:
     """Resolve unified output root for generated reports/artifacts.
@@ -166,15 +161,11 @@ def main():
 
         node = _normalize_process_node(tech_node)
 
-        # Look for LVS script in T180 assets first, fall back to T28 shared scripts
         script_path = skill_dir / "assets" / "external_scripts" / "calibre" / "run_lvs.csh"
-        if not script_path.exists():
-            script_path = _t28_skill_dir / "assets" / "external_scripts" / "calibre" / "run_lvs.csh"
 
         if not script_path.exists():
             print(f"Error: LVS script file not found")
-            print(f"   Checked T180 path: {skill_dir / 'assets' / 'external_scripts' / 'calibre' / 'run_lvs.csh'}")
-            print(f"   Checked T28 path: {_t28_skill_dir / 'assets' / 'external_scripts' / 'calibre' / 'run_lvs.csh'}")
+            print(f"   Checked path: {script_path}")
             raise FileNotFoundError(f"LVS script file not found")
 
         script_path.chmod(0o755)

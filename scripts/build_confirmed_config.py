@@ -38,30 +38,42 @@ def _format_exception(error: Exception) -> str:
 
 
 def main():
-    from assets.core.layout.confirmed_config_builder import build_confirmed_config_from_io_config
+    from assets.core.layout.confirmed_config_builder import build_confirmed_config_from_io_config, build_draft_editor_session
 
     # Parse arguments
     if len(sys.argv) < 3:
-        print("Usage: python build_confirmed_config.py <intent_graph.json> <output_confirmed.json> [--skip-editor]")
+        print("Usage: python build_confirmed_config.py <intent_graph.json> <output_confirmed.json> [--skip-editor] [--mode draft|confirmation]")
         print("\nArguments:")
         print("  intent_graph.json    - Path to input intent graph JSON file")
         print("  output_confirmed.json - Path for output confirmed config JSON")
         print("  --skip-editor        - Optional: Skip GUI confirmation in CLI mode")
-        print("\nExample:")
+        print("  --mode draft         - Optional: Open in Draft Editor mode (no fillers/pins)")
+        print("  --mode confirmation  - Optional: Open in Confirmation Editor mode (default)")
+        print("\nExamples:")
         print("  python build_confirmed_config.py io_ring.json io_ring_confirmed.json")
+        print("  python build_confirmed_config.py draft.json draft_confirmed.json --mode draft")
+        print("  python build_confirmed_config.py io_ring.json io_ring_confirmed.json --skip-editor")
         sys.exit(2)
 
     intent_graph_path = sys.argv[1]
     confirmed_output_path = sys.argv[2]
     extra_args = sys.argv[3:]
     skip_editor_confirmation = False
+    editor_mode = 'confirmation'
     for arg in extra_args:
         if arg == "--skip-editor":
             skip_editor_confirmation = True
+        elif arg == "--mode" or arg.startswith("--mode="):
+            if arg.startswith("--mode="):
+                editor_mode = arg.split("=", 1)[1]
+            else:
+                idx = extra_args.index(arg)
+                if idx + 1 < len(extra_args):
+                    editor_mode = extra_args[idx + 1]
 
     # Check input file exists
     if not Path(intent_graph_path).exists():
-        print(f"❌ Error: Input file not found")
+        print(f"[ERROR] Error: Input file not found")
         print(f"   File: {Path(intent_graph_path).resolve()}")
         print(f"   Please check:")
         print(f"     1. File exists at specified path")
@@ -72,7 +84,7 @@ def main():
     # Validate output path parent directory exists
     output_parent = Path(confirmed_output_path).parent
     if not output_parent.exists():
-        print(f"⚠️  Warning: Output directory does not exist: {output_parent}")
+        print(f"[WARN]  Warning: Output directory does not exist: {output_parent}")
         print(f"   Will create directory automatically")
         output_parent.mkdir(parents=True, exist_ok=True)
 
@@ -83,40 +95,53 @@ def main():
         print(f"Intent graph: {Path(intent_graph_path).resolve()}")
         print(f"Output: {Path(confirmed_output_path).resolve()}")
         print(f"Process node: T180")
+        print(f"Editor mode: {editor_mode}")
         print(f"Skip editor: {skip_editor_confirmation}")
         print("")
 
-        print("🔧 Building confirmed config...")
-        print(f"   Input: {intent_graph_path}")
-        print(f"   Output: {confirmed_output_path}")
-        print(f"   Process: T180")
+        if editor_mode == 'draft':
+            print("[*] Building draft editor session...")
+            print(f"   Input: {intent_graph_path}")
+            print(f"   Output: {confirmed_output_path}")
+            print(f"   Mode: draft (T180)")
 
-        # Call the core function directly
-        confirmed_path = build_confirmed_config_from_io_config(
-            source_json_path=intent_graph_path,
-            confirmed_output_path=confirmed_output_path,
-            skip_editor_confirmation=skip_editor_confirmation,
-        )
+            confirmed_path = build_draft_editor_session(
+                draft_json_path=intent_graph_path,
+                confirmed_output_path=confirmed_output_path,
+                skip_editor_confirmation=skip_editor_confirmation,
+            )
+        else:
+            print("[*] Building confirmed config...")
+            print(f"   Input: {intent_graph_path}")
+            print(f"   Output: {confirmed_output_path}")
+            print(f"   Process: T180")
+
+            # Call the core function directly
+            confirmed_path = build_confirmed_config_from_io_config(
+                source_json_path=intent_graph_path,
+                confirmed_output_path=confirmed_output_path,
+                skip_editor_confirmation=skip_editor_confirmation,
+            )
 
         # Verify output was created
         if Path(confirmed_path).exists():
             print("")
             print("=== Success ===")
-            print(f"✅ Confirmed IO config generated successfully: {Path(confirmed_path).resolve()}")
+            print(f"[OK] Confirmed IO config generated successfully: {Path(confirmed_path).resolve()}")
             file_size = Path(confirmed_path).stat().st_size
             print(f"   File size: {file_size} bytes")
-            print("💡 This file is ready for downstream layout/schematic generation.")
+            print("[TIP] This file is ready for downstream layout/schematic generation.")
             sys.exit(0)
         else:
             print("")
-            print("⚠️  Warning: Output file may not have been created")
+            print("[WARN]  Warning: Output file may not have been created")
             print(f"   Expected: {Path(confirmed_path).resolve()}")
             print(f"   Check the output above for any error messages")
             sys.exit(0)
 
     except FileNotFoundError as e:
         print("")
-        print(f"❌ Error: File not found - {e}")
+        print(f"[ERROR] Error: File not found - {e}")
         print(f"   Message: {str(e)}")
         print(f"   This may indicate:")
         print(f"     1. Input file does not exist")
@@ -130,7 +155,7 @@ def main():
 
     except RuntimeError as e:
         print("")
-        print(f"❌ Error: Runtime error - {e}")
+        print(f"[ERROR] Error: Runtime error - {e}")
         print(f"   Message: {str(e)}")
         print(f"   This may indicate:")
         print(f"     1. Configuration validation failure")
@@ -145,7 +170,7 @@ def main():
 
     except Exception as e:
         print("")
-        print(f"❌ Error during config build - {type(e).__name__}: {e}")
+        print(f"[ERROR] Error during config build - {type(e).__name__}: {e}")
         print(f"   Message: {str(e)}")
         print(f"   Debug information:")
         print(f"     Working directory: {os.getcwd()}")

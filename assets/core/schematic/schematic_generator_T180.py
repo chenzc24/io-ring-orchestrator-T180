@@ -455,7 +455,7 @@ class SchematicGenerator:
         )
 
         commands = []
-        commands.append("cv = geGetWindowCellView()")
+        commands.append("cv = geGetEditCellView()")
         
         loaded_devices = set()
         noConn_loaded = False  # Mark whether noConn component has been loaded
@@ -466,7 +466,7 @@ class SchematicGenerator:
             template = self.template_manager.get_template(device)
             
             if not template:
-                print(f"⚠️  Warning: Template not found for device type {device}, skipping {inst['name']}")
+                print(f"[WARN]  Warning: Template not found for device type {device}, skipping {inst['name']}")
                 continue
             
             # Load device library (if not loaded yet)
@@ -577,8 +577,8 @@ class SchematicGenerator:
             for cmd in commands:
                 f.write(cmd + '\n')
         
-        print(f"✅ Successfully generated schematic file: {output_file}")
-        print(f"📊 Statistics:")
+        print(f"[OK] Successfully generated schematic file: {output_file}")
+        print(f"[STATS] Statistics:")
         print(f"  - Device instance count: {len(schematic_instances)}")
         print(f"  - Device types used: {', '.join(loaded_devices)}")
         print(f"  - SKILL command count: {len(commands)}")
