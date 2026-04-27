@@ -242,13 +242,10 @@ class AutoFillerGeneratorT180:
             return float(pad_width_default)
 
         def filler_record(name: str, device: str, record_type: str, position: str) -> dict:
-            ref = global_ref_filler
             return {
                 "name": name,
                 "device": device,
                 "type": record_type,
-                "pad_width": ref.get("pad_width"),
-                "pad_height": ref.get("pad_height", pad_height_default),
                 "position": position,
             }
 
@@ -291,10 +288,7 @@ class AutoFillerGeneratorT180:
 
         pads = [comp for comp in layout_components if comp.get("type") == "pad"]
 
-        global_ref_filler = {
-            "pad_width": 10,
-            "pad_height": pads[0].get("pad_height", pad_height_default) if pads else pad_height_default,
-        }
+        filler_unit_width_default = 10.0
 
         oriented_pads = {"R0": [], "R90": [], "R180": [], "R270": []}
         for pad in pads:
@@ -388,7 +382,7 @@ class AutoFillerGeneratorT180:
             target_span = target_span_for_side(side)
             if target_span is not None:
                 current_span = sum(get_component_width(comp) for comp in side_components)
-                filler_unit_width = float(global_ref_filler.get("pad_width", 10) or 10)
+                filler_unit_width = filler_unit_width_default
                 tail_fill_index = 0
                 while current_span + filler_unit_width <= target_span + 0.001:
                     tail_filler = filler_record(

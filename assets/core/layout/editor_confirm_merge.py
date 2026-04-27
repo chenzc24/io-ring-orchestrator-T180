@@ -81,7 +81,7 @@ def _resolve_process_node(payload: Any) -> str:
     return process_node.strip().upper()
 
 
-def _strip_t28_editor_geometry(payload: Any) -> Any:
+def _strip_editor_geometry(payload: Any) -> Any:
     if not isinstance(payload, dict):
         return payload
 
@@ -395,8 +395,8 @@ def merge_instances_with_structure(base_instances: List[dict], incoming_instance
 def build_confirmed_payload(source_payload: dict, editor_payload: dict) -> dict:
     if not isinstance(source_payload, dict):
         fallback_payload = normalize_editor_payload_for_confirm(editor_payload)
-        if _resolve_process_node(fallback_payload) == "T28":
-            fallback_payload = _strip_t28_editor_geometry(fallback_payload)
+        if _resolve_process_node(fallback_payload) in {"T28", "T180"}:
+            fallback_payload = _strip_editor_geometry(fallback_payload)
         return fallback_payload
 
     normalized_editor = normalize_editor_payload_for_confirm(editor_payload)
@@ -437,8 +437,8 @@ def build_confirmed_payload(source_payload: dict, editor_payload: dict) -> dict:
     if isinstance(result.get("instances"), list) and isinstance(result.get("layout_data"), list):
         result["layout_data"] = deepcopy(result["instances"])
 
-    if _resolve_process_node(result) == "T28":
-        result = _strip_t28_editor_geometry(result)
+    if _resolve_process_node(result) in {"T28", "T180"}:
+        result = _strip_editor_geometry(result)
 
     return result
 

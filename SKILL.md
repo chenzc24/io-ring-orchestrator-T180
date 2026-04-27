@@ -148,7 +148,7 @@ Reference: `references/enrichment_rules_T180.md`
 3. Add per-instance `device` based on device selection tables.
 4. Add per-instance `direction` for digital IO (`PDDW0412SCDG` only).
 5. Add per-instance `pin_connection` according to the Pin Configuration Matrix.
-6. Add per-instance `domain`, `view_name`, `pad_width`, `pad_height`.
+6. Add per-instance `domain`, `view_name`.
 7. Insert 4 corners (`PCORNER`) at correct transition positions.
 8. Pre-save rule gates (per `enrichment_rules_T180.md`): Continuity, Provider-count, Position-identity, Pin-family, VSS-consistency.
 9. Save to `{output_dir}/io_ring_intent_graph.json`.

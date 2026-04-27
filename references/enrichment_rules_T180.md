@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Enrich the Phase 1 draft JSON with device types, pin connections, direction, domain, corners, and per-instance pad dimensions.
+Enrich the Phase 1 draft JSON with device types, pin connections, direction, domain, and corners.
 
 ## Scope
 
@@ -12,7 +12,6 @@ This phase adds the following fields to each instance:
 - `direction` (Digital IO only)
 - `domain`
 - `view_name`
-- `pad_width` / `pad_height` (per-instance)
 
 And inserts corner instances.
 
@@ -358,14 +357,10 @@ Corner positions are fixed regardless of placement order:
   "device": "PCORNER",
   "view_name": "layout",
   "domain": "null",
-  "pad_width": 130,
-  "pad_height": 130,
   "position": "top_left",
   "type": "corner"
 }
 ```
-
-Corner instance pad dimensions always use `corner_size` value from `ring_config`.
 
 ---
 
@@ -377,8 +372,6 @@ Each enriched instance must include these additional fields:
 |-------|-------|
 | `view_name` | `"layout"` |
 | `domain` | `"analog"` or `"digital"` or `"null"` (for corners) |
-| `pad_width` | From `ring_config.pad_width` (or `ring_config.corner_size` for corners) |
-| `pad_height` | From `ring_config.pad_height` (or `ring_config.corner_size` for corners) |
 
 ---
 
@@ -423,8 +416,6 @@ Before saving the final JSON, verify these gates pass:
   "device": "PVDD1ANA",
   "view_name": "layout",
   "domain": "analog",
-  "pad_width": 80,
-  "pad_height": 120,
   "position": "top_0",
   "type": "pad",
   "pin_connection": {
@@ -446,8 +437,6 @@ Before saving the final JSON, verify these gates pass:
   "device": "PVDD1CDG",
   "view_name": "layout",
   "domain": "analog",
-  "pad_width": 80,
-  "pad_height": 120,
   "position": "top_1",
   "type": "pad",
   "pin_connection": {
@@ -468,8 +457,6 @@ Before saving the final JSON, verify these gates pass:
   "device": "PVSS2CDG",
   "view_name": "layout",
   "domain": "analog",
-  "pad_width": 80,
-  "pad_height": 120,
   "position": "top_3",
   "type": "pad",
   "pin_connection": {
@@ -490,8 +477,6 @@ Before saving the final JSON, verify these gates pass:
   "device": "PDDW0412SCDG",
   "view_name": "layout",
   "domain": "digital",
-  "pad_width": 80,
-  "pad_height": 120,
   "position": "top_1",
   "type": "pad",
   "direction": "input",
@@ -512,8 +497,6 @@ Before saving the final JSON, verify these gates pass:
   "device": "PCORNER",
   "view_name": "layout",
   "domain": "null",
-  "pad_width": 130,
-  "pad_height": 130,
   "position": "top_left",
   "type": "corner"
 }

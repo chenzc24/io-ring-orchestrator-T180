@@ -282,12 +282,10 @@ class LayoutGeneratorT180:
                 "position": position,
                 "orientation": orientation,
             }
-            if component_type in {"filler", "blank"}:
-                component["pad_width"] = geom_width
-                component["pad_height"] = geom_height
-            else:
-                component["pad_width"] = geom_width
-                component["pad_height"] = geom_height
+            # Geometry is resolved internally for position calculation.
+            # pad_width/pad_height are NOT added to the component dict.
+            # Downstream consumers (skill_generator, visualizer) derive
+            # dimensions from ring_config defaults or device name patterns.
             
             if has_relative_semantics:
                 component["position_str"] = relative_pos

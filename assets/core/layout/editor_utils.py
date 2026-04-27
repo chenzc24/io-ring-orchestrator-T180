@@ -218,7 +218,7 @@ def export_to_editor_json(
     corners_list = []
 
     preserved_fields = [
-        "view_name", "domain", "pad_width", "pad_height",
+        "view_name", "domain",
         "pin_connection", "direction", "voltage_domain",
         "orientation"
     ]
