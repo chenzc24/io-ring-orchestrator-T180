@@ -119,16 +119,46 @@ def validate_instances(instances: list) -> Tuple[bool, str]:
         if not isinstance(position, str):
             return False, f"Instance {i}: position must be a string"
 
-        # Basic position format check
-        valid_position_prefixes = ['top_', 'bottom_', 'left_', 'right_', 'corner_']
-        if not any(position.startswith(prefix) for prefix in valid_position_prefixes):
-            return False, f"Instance {i}: position '{position}' has invalid format (should start with top_, bottom_, left_, right_, or corner_)"
+        # Corner positions (exact names)
+        corner_positions = {'top_left', 'top_right', 'bottom_left', 'bottom_right'}
+
+        # Validate position format
+        if position in corner_positions:
+            # Corner position — validate device is a corner device
+            device_upper = instance['device'].upper()
+            valid_corner_devices = {'PCORNER', 'PCORNER_G'}
+            if device_upper not in valid_corner_devices:
+                return False, f"Instance {i}: corner position '{position}' requires a corner device (PCORNER), got '{instance['device']}'"
+            # Validate type field if present
+            if 'type' in instance and instance['type'] != 'corner':
+                return False, f"Instance {i}: corner position '{position}' must have type='corner', got type='{instance['type']}'"
+        else:
+            # Side position
+            valid_position_prefixes = ['top_', 'bottom_', 'left_', 'right_']
+            if not any(position.startswith(prefix) for prefix in valid_position_prefixes):
+                return False, f"Instance {i}: position '{position}' has invalid format (should be a corner name or start with top_, bottom_, left_, right_)"
+            # Side position must NOT use a corner device
+            device_upper = instance['device'].upper()
+            if device_upper in {'PCORNER', 'PCORNER_G'}:
+                return False, f"Instance {i}: corner device '{instance['device']}' cannot be placed at non-corner position '{position}'"
 
         # Validate pin_connection if present
         if 'pin_connection' in instance:
             pin_conn = instance['pin_connection']
             if not isinstance(pin_conn, dict):
                 return False, f"Instance {i}: pin_connection must be a dictionary"
+
+    # Validate exactly 4 corners exist
+    corner_position_names = {'top_left', 'top_right', 'bottom_left', 'bottom_right'}
+    found_corners = set()
+    for instance in instances:
+        pos = instance.get('position', '')
+        if pos in corner_position_names:
+            found_corners.add(pos)
+
+    if len(found_corners) != 4:
+        missing = corner_position_names - found_corners
+        return False, f"Expected 4 corner positions, found {len(found_corners)}. Missing: {', '.join(sorted(missing))}"
 
     return True, f"{len(instances)} instances valid"
 

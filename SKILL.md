@@ -78,7 +78,11 @@ elif command -v python  &>/dev/null;                    then export AMS_PYTHON="
 else echo "ERROR: No Python 3.9+ found. Create .venv at project root."; return 1; fi
 echo "AMS_PYTHON=${AMS_PYTHON}"
 
-	# Editor modes (default off)
+	# Load .env into shell environment (skill .env, then project .env; later does NOT override earlier)
+	if [ -f "${SKILL_ROOT}/.env" ]; then set -a; . "${SKILL_ROOT}/.env"; set +a; fi
+	if [ -f "${PROJECT_ROOT}/.env" ]; then set -a; . "${PROJECT_ROOT}/.env"; set +a; fi
+
+	# Editor modes (default off if not set by .env)
 	[ "${AMS_DRAFT_EDITOR:-}"  = "on" ] || export AMS_DRAFT_EDITOR="off"
 	[ "${AMS_LAYOUT_EDITOR:-}" = "on" ] || export AMS_LAYOUT_EDITOR="off"
 	echo "AMS_DRAFT_EDITOR=${AMS_DRAFT_EDITOR}  AMS_LAYOUT_EDITOR=${AMS_LAYOUT_EDITOR}"
@@ -216,6 +220,9 @@ $AMS_PYTHON $SCRIPTS_PATH/generate_layout.py \
   {output_dir}/io_ring_layout.il
 ```
 
+The scripts automatically add a timestamp to the output filename (e.g. `io_ring_schematic_20260428_181744.il`).
+Use the **actual output path printed by each script** in subsequent steps.
+
 Note: Both scripts are hardcoded for T180 — no process node parameter needed.
 
 ### Step 8: Check Virtuoso Connection
@@ -229,15 +236,17 @@ $AMS_PYTHON $SCRIPTS_PATH/check_virtuoso_connection.py
 
 ### Step 9: Execute SKILL Scripts in Virtuoso
 
+Use the timestamped `.il` filenames printed by Step 7:
+
 ```bash
 $AMS_PYTHON $SCRIPTS_PATH/run_il_with_screenshot.py \
-  {output_dir}/io_ring_schematic.il \
+  {output_dir}/io_ring_schematic_<timestamp>.il \
   {lib} {cell} \
   {output_dir}/schematic_screenshot.png \
   schematic
 
 $AMS_PYTHON $SCRIPTS_PATH/run_il_with_screenshot.py \
-  {output_dir}/io_ring_layout.il \
+  {output_dir}/io_ring_layout_<timestamp>.il \
   {lib} {cell} \
   {output_dir}/layout_screenshot.png \
   layout

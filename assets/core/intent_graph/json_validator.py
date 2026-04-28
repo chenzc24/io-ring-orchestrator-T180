@@ -141,7 +141,20 @@ def validate_config(config: Dict[str, Any]) -> bool:
             if device.endswith("_G_G"):
                 print(f"[ERROR] Error: instance[{i}] {name}'s corner device has duplicate _G suffix: '{device}'. Should be '{device[:-2]}' (only one _G suffix allowed)")
                 return False
+            # Validate corner device is a valid corner device
+            device_upper = device.upper()
+            valid_corner_devices = {'PCORNER', 'PCORNER_G'}
+            if device_upper not in valid_corner_devices:
+                print(f"[ERROR] Error: instance[{i}] {name}: corner position '{position}' requires a corner device (PCORNER), got '{device}'")
+                return False
         
+        # Non-corner position must not use a corner device
+        if not position.startswith(('top_left', 'top_right', 'bottom_left', 'bottom_right')):
+            device_upper = device.upper()
+            if device_upper in {'PCORNER', 'PCORNER_G'}:
+                print(f"[ERROR] Error: instance[{i}] {name}: corner device '{device}' cannot be placed at non-corner position '{position}'")
+                return False
+
         # Validate device suffix rules (only for 28nm, 180nm doesn't need suffix)
         if not validate_device_suffix(device, position, process_node):
             print(f"[ERROR] Error: instance[{i}] {name}'s device suffix doesn't match position")
