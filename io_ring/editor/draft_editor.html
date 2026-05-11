@@ -757,10 +757,11 @@ const T180_DEVICE_COLORS = {
   PVDD2ANA: '#5BA0F2', PVSS2ANA: '#3A80D2',
   PCORNER: '#FF6B6B',
   PFILLER10: '#C0C0C0', PFILLER20: '#C0C0C0',
-  blank: '#FF0000',
+  BLANK: '#F97316',
 };
 const CORNER_COLOR = '#FF6B6B';
 const FILLER_COLOR = '#C0C0C0';
+const BLANK_COLOR = '#F97316';
 const DEFAULT_PAD_COLOR = '#CCCCCC';
 const SELECTED_COLOR = '#3b82f6';
 
@@ -774,7 +775,8 @@ function getDeviceColor(device, processNode) {
   }
   // Fallbacks for unmatched devices
   if (d.includes('CORNER')) return CORNER_COLOR;
-  if (d.includes('FILLER') || d.includes('RCUT') || d === 'BLANK') return FILLER_COLOR;
+  if (d === 'BLANK') return BLANK_COLOR;
+  if (d.includes('FILLER') || d.includes('RCUT')) return FILLER_COLOR;
   return DEFAULT_PAD_COLOR;
 }
 
@@ -2023,10 +2025,12 @@ function RingCanvasComponent() {
     const isDragging = dragState?.id === inst.id && dragState?.moved;
     const isPartOfDragSelection = dragState?.moved && dragState?.selectedIds?.includes(inst.id);
     const instTypeLower = String(inst.type || '').toLowerCase();
-    const isFillerInst = instTypeLower === 'filler' || instTypeLower === 'blank'
-      || String(inst.device || '').toUpperCase().includes('FILLER')
-      || String(inst.device || '').toUpperCase().includes('RCUT');
-    const isCornerInst = instTypeLower === 'corner' || String(inst.device || '').toUpperCase().includes('CORNER');
+    const instDeviceUpper = String(inst.device || '').toUpperCase();
+    const isBlankInst = instTypeLower === 'blank' || instDeviceUpper === 'BLANK';
+    const isFillerInst = instTypeLower === 'filler' || isBlankInst
+      || instDeviceUpper.includes('FILLER')
+      || instDeviceUpper.includes('RCUT');
+    const isCornerInst = instTypeLower === 'corner' || instDeviceUpper.includes('CORNER');
     const isInnerPadInst = instTypeLower === 'inner_pad';
 
     // Label: match old editor — "name:device" for IO pads, device/name for corner/filler
@@ -2047,9 +2051,9 @@ function RingCanvasComponent() {
     const fontSize = Math.max(4, Math.min(baseFontSize, Math.max(4, Math.min(w, rh) * 0.42)));
 
     // Stroke: dashed for fillers/blanks
-    const strokeColor = isSelected ? 'blue' : 'black';
+    const strokeColor = isSelected ? 'blue' : isBlankInst ? '#9a3412' : 'black';
     const strokeWidth = isSelected ? 3 : 2;
-    const strokeDash = isFillerInst ? '4 2' : undefined;
+    const strokeDash = isBlankInst ? '2 2' : isFillerInst ? '4 2' : undefined;
 
     // Text: dark ink with white outline (same as old editor)
     const textStyle = {

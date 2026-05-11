@@ -1,5 +1,5 @@
 ---
-name: io-ring-orchestrator-T180
+name: t180-ioring
 description: Master coordinator for complete T180 (180nm) IO Ring generation. Handles signal classification, device mapping, semantic intent generation, engine-based pin wiring, JSON generation, SKILL generation, and complete workflow through DRC/LVS verification. Use this skill for any T180 IO Ring generation task. Trigger when user mentions T180, 180nm, 180nm IO ring, or any IO ring task targeting the 180nm process node.
 ---
 
@@ -285,7 +285,7 @@ voltage-domain summary, and image analysis results if applicable.
 ## Directory Structure
 
 ```text
-io-ring-orchestrator-T180/
+t180-ioring/
   SKILL.md
   .env
   requirements.txt
